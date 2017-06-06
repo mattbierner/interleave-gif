@@ -1,10 +1,17 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
+import { InterleavedGif } from "./interleaver";
 
-import * as scanline_renderer from './scanline_renderer';
+export function drawForOptions(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, gif: InterleavedGif, state: any) {
+    canvas.width = gif.width
+    canvas.height = gif.height
+    context.drawImage(gif.frames[state.currentFrame].canvas, 0, 0, canvas.width, canvas.height)
+}
 
 interface GifRendererProps {
-    imageData: any
+    gif: InterleavedGif
+    currentFrame: number
+
     [key: string]: any
 }
 
@@ -21,12 +28,12 @@ export default class GifRenderer extends React.Component<GifRendererProps, null>
     }
 
     componentWillReceiveProps(newProps: GifRendererProps) {
-        this.drawGifForOptions(newProps.imageData, newProps);
+        this.drawGifForOptions(newProps.gif, newProps);
     }
 
     drawGifForOptions(imageData: any, state: GifRendererProps) {
         if (imageData) {
-            scanline_renderer.drawForOptions(this._canvas, this._ctx, imageData, state);
+            drawForOptions(this._canvas, this._ctx, imageData, state);
         }
     }
 

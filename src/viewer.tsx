@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-import loadGif from './loadGif';
+import loadGif, { Gif } from './loadGif';
 import LabeledSlider from './labeled_slider';
 import LoadingSpinner from './loading_spinner';
 import GifPlayer from './gif_player';
@@ -57,11 +57,12 @@ interface ViewerProps {
 }
 
 interface ViewerState {
-    imageData: any
+    leftImageData: Gif | null
+    rightImageData: Gif | null
     loadingGif: boolean
     mode: string
     exporting: boolean
-    error?: any
+    error?: string
 }
 
 /**
@@ -71,43 +72,48 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
     constructor(props: ViewerProps) {
         super(props);
         this.state = {
-            imageData: null,
+            leftImageData: null,
+            rightImageData: null,
+
             loadingGif: false,
             mode: Object.keys(modes)[0],
             exporting: false
-        };
-    }
-
-    componentDidMount() {
-        this.loadGif(this.props.leftGif);
-    }
-
-    componentWillReceiveProps(newProps: ViewerProps) {
-        if (newProps.leftGif && newProps.leftGif.length && newProps.leftGif !== this.props.leftGif) {
-            this.loadGif(newProps.leftGif);
         }
     }
 
-    private loadGif(file: string) {
-        this.setState({ loadingGif: true });
-        loadGif(file)
-            .then(data => {
-                if (file !== this.props.leftGif)
-                    return;
+    componentDidMount() {
+        this.loadGif(this.props.leftGif, this.props.rightGif)
+    }
+
+    componentWillReceiveProps(newProps: ViewerProps) {
+        if (newProps.leftGif && this.props.rightGif &&
+            (newProps.leftGif !== this.props.leftGif || newProps.rightGif! + this.props.rightGif)) {
+            this.loadGif(newProps.leftGif, newProps.rightGif)
+        }
+    }
+
+    private loadGif(leftGif: string, rightGif: string) {
+        this.setState({ loadingGif: true })
+        Promise.all([loadGif(leftGif), loadGif(rightGif)])
+            .then(([leftData, rightData]) => {
+                if (leftGif !== this.props.leftGif || rightGif !== this.props.rightGif)
+                    return
 
                 this.setState({
-                    imageData: data,
+                    leftImageData: leftData,
+                    rightImageData: rightData,
                     loadingGif: false,
                     error: null
-                });
+                })
             })
             .catch(e => {
-                if (file !== this.props.leftGif)
-                    return;
+                if (leftGif !== this.props.leftGif || rightGif !== this.props.rightGif)
+                    return
 
-                console.error(e);
+                console.error(e)
                 this.setState({
-                    imageData: [],
+                    leftImageData: null,
+                    rightImageData: null,
                     loadingGif: false,
                     error: 'Could not load gif'
                 })
@@ -121,7 +127,7 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
 
     onExport() {
         this.setState({ exporting: true });
-        exportGif(this.state.imageData, this.state).then(blob => {
+        exportGif(this.state.leftImageData, this.state).then(blob => {
             this.setState({ exporting: false });
             const url = URL.createObjectURL(blob);
             window.open(url);

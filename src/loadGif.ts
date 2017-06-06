@@ -20,6 +20,12 @@ const loadBinaryData = (url: string): Promise<Uint8Array> => {
     return p;
 };
 
+export interface Gif {
+    width: number
+    height: number
+    frames: any[]
+}
+
 /**
  * Extract metadata and frames from binary gif data.
  */
@@ -49,7 +55,7 @@ const createImageData = (() => {
 /**
  * Extract each frame of metadata / frame data (as a canvas) from a gif.
  */
-const extractGifFrameData = (reader: any) => {
+const extractGifFrameData = (reader: any): any[] => {
     const frames = []
     const { width, height } = reader;
 
@@ -73,5 +79,5 @@ const extractGifFrameData = (reader: any) => {
 /**
  * Load and decode a gif.
  */
-export default (url: string) =>
+export default (url: string): Promise<Gif> =>
     loadBinaryData(url).then(decodeGif);

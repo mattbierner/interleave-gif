@@ -63,7 +63,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 120);
+/******/ 	return __webpack_require__(__webpack_require__.s = 119);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -10335,9 +10335,57 @@ module.exports = __webpack_require__(167);
 
 /***/ }),
 /* 67 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-throw new Error("Module build failed: Error: ENOENT: no such file or directory, open '/Users/mattbierner/Projects/interleave-gif/src/scanline_renderer.ts'");
+"use strict";
+
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+var React = __webpack_require__(18);
+var ReactDOM = __webpack_require__(66);
+function drawForOptions(canvas, context, gif, state) {
+    canvas.width = gif.width;
+    canvas.height = gif.height;
+    context.drawImage(gif.frames[state.currentFrame].canvas, 0, 0, canvas.width, canvas.height);
+}
+exports.drawForOptions = drawForOptions;
+/**
+ * Renders a scanlined gif.
+ */
+var GifRenderer = (function (_super) {
+    __extends(GifRenderer, _super);
+    function GifRenderer() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    GifRenderer.prototype.componentDidMount = function () {
+        this._canvas = ReactDOM.findDOMNode(this);
+        this._ctx = this._canvas.getContext('2d');
+    };
+    GifRenderer.prototype.componentWillReceiveProps = function (newProps) {
+        this.drawGifForOptions(newProps.gif, newProps);
+    };
+    GifRenderer.prototype.drawGifForOptions = function (imageData, state) {
+        if (imageData) {
+            drawForOptions(this._canvas, this._ctx, imageData, state);
+        }
+    };
+    GifRenderer.prototype.render = function () {
+        return (React.createElement("canvas", { className: "gif-canvas", width: "0", height: "0" }));
+    };
+    return GifRenderer;
+}(React.Component));
+exports.default = GifRenderer;
+;
+
 
 /***/ }),
 /* 68 */
@@ -18740,7 +18788,7 @@ var Search = (function (_super) {
     };
     Search.prototype.render = function () {
         return (React.createElement("div", { className: 'gif-search' },
-            React.createElement(GifSearchBar, { searchText: '', onChange: this.onSearchTextChange.bind(this), onSearch: this.search.bind(this) }),
+            React.createElement(GifSearchBar, { searchText: this.state.searchText, onChange: this.onSearchTextChange.bind(this), onSearch: this.search.bind(this) }),
             React.createElement(GifSearchResults, __assign({}, this.state, { onGifSelected: this.onGifSelected.bind(this) }))));
     };
     return Search;
@@ -18831,7 +18879,8 @@ var Viewer = (function (_super) {
     function Viewer(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
-            imageData: null,
+            leftImageData: null,
+            rightImageData: null,
             loadingGif: false,
             mode: Object.keys(modes)[0],
             exporting: false
@@ -18839,32 +18888,36 @@ var Viewer = (function (_super) {
         return _this;
     }
     Viewer.prototype.componentDidMount = function () {
-        this.loadGif(this.props.leftGif);
+        this.loadGif(this.props.leftGif, this.props.rightGif);
     };
     Viewer.prototype.componentWillReceiveProps = function (newProps) {
-        if (newProps.leftGif && newProps.leftGif.length && newProps.leftGif !== this.props.leftGif) {
-            this.loadGif(newProps.leftGif);
+        if (newProps.leftGif && this.props.rightGif &&
+            (newProps.leftGif !== this.props.leftGif || newProps.rightGif + this.props.rightGif)) {
+            this.loadGif(newProps.leftGif, newProps.rightGif);
         }
     };
-    Viewer.prototype.loadGif = function (file) {
+    Viewer.prototype.loadGif = function (leftGif, rightGif) {
         var _this = this;
         this.setState({ loadingGif: true });
-        loadGif_1.default(file)
-            .then(function (data) {
-            if (file !== _this.props.leftGif)
+        Promise.all([loadGif_1.default(leftGif), loadGif_1.default(rightGif)])
+            .then(function (_a) {
+            var leftData = _a[0], rightData = _a[1];
+            if (leftGif !== _this.props.leftGif || rightGif !== _this.props.rightGif)
                 return;
             _this.setState({
-                imageData: data,
+                leftImageData: leftData,
+                rightImageData: rightData,
                 loadingGif: false,
                 error: null
             });
         })
             .catch(function (e) {
-            if (file !== _this.props.leftGif)
+            if (leftGif !== _this.props.leftGif || rightGif !== _this.props.rightGif)
                 return;
             console.error(e);
             _this.setState({
-                imageData: [],
+                leftImageData: null,
+                rightImageData: null,
                 loadingGif: false,
                 error: 'Could not load gif'
             });
@@ -18877,7 +18930,7 @@ var Viewer = (function (_super) {
     Viewer.prototype.onExport = function () {
         var _this = this;
         this.setState({ exporting: true });
-        gif_export_1.default(this.state.imageData, this.state).then(function (blob) {
+        gif_export_1.default(this.state.leftImageData, this.state).then(function (blob) {
             _this.setState({ exporting: false });
             var url = URL.createObjectURL(blob);
             window.open(url);
@@ -18907,8 +18960,8 @@ exports.default = Viewer;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+var gif_renderer_1 = __webpack_require__(67);
 var GifEncoder = __webpack_require__(141);
-var scanline_renderer = __webpack_require__(67);
 /**
  *
  */
@@ -18928,7 +18981,7 @@ exports.default = function (imageData, props) {
     gif.writeHeader();
     setTimeout(function () {
         for (var i = 0; i < imageData.frames.length; ++i) {
-            scanline_renderer.drawForOptions(canvas, ctx, imageData, Object.assign({ currentFrame: i }, props));
+            gif_renderer_1.drawForOptions(canvas, ctx, imageData, Object.assign({ currentFrame: i }, props));
             gif.setDelay(imageData.frames[i].info.delay * 10);
             gif.addFrame(ctx.getImageData(0, 0, imageData.width, imageData.height).data);
         }
@@ -18966,7 +19019,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(18);
 var labeled_slider_1 = __webpack_require__(121);
 var loading_spinner_1 = __webpack_require__(45);
-var gif_renderer_1 = __webpack_require__(119);
+var gif_renderer_1 = __webpack_require__(67);
+var interleaver_1 = __webpack_require__(120);
 var playbackSpeeds = {
     '1x speed': 1,
     '2x speed': 2,
@@ -19020,9 +19074,9 @@ var GifProperties = (function (_super) {
     }
     GifProperties.prototype.render = function () {
         return (React.createElement("div", { className: "gif-properties" },
-            React.createElement(GifProperty, { label: "Frames", value: this.props.imageData ? this.props.imageData.frames.length : '' }),
-            React.createElement(GifProperty, { label: "Width", value: this.props.imageData ? this.props.imageData.width : '' }),
-            React.createElement(GifProperty, { label: "Height", value: this.props.imageData ? this.props.imageData.height : '' })));
+            React.createElement(GifProperty, { label: "Frames", value: this.props.gif ? this.props.gif.frames.length : '' }),
+            React.createElement(GifProperty, { label: "Width", value: this.props.gif ? this.props.gif.width : '' }),
+            React.createElement(GifProperty, { label: "Height", value: this.props.gif ? this.props.gif.height : '' })));
     };
     return GifProperties;
 }(React.Component));
@@ -19035,6 +19089,7 @@ var GifPlayer = (function (_super) {
     function GifPlayer(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
+            interleavedGif: null,
             currentFrame: 0,
             playing: false,
             loop: true,
@@ -19043,32 +19098,34 @@ var GifPlayer = (function (_super) {
         return _this;
     }
     GifPlayer.prototype.componentWillReceiveProps = function (newProps) {
-        if (this.props.imageData !== newProps.imageData) {
+        if (this.props.leftImageData !== newProps.leftImageData || this.props.rightImageData !== newProps.rightImageData) {
+            var interleaved = interleaver_1.interleave(newProps.leftImageData, newProps.rightImageData);
             this.setState({
+                interleavedGif: interleaved,
                 currentFrame: 0,
                 playing: true // autoplay
             });
-            this.scheduleNextFrame(newProps.imageData, 0, true);
+            this.scheduleNextFrame(newProps.leftImageData, newProps.rightImageData, 0, true);
         }
     };
     GifPlayer.prototype.onToggle = function () {
         this.setState({ playing: !this.state.playing });
         if (!this.state.playing) {
-            this.scheduleNextFrame(this.props.imageData, 0, true);
+            this.scheduleNextFrame(this.props.leftImageData, this.props.rightImageData, 0, true);
         }
     };
     GifPlayer.prototype.getNumFrames = function () {
-        if (!this.props.imageData)
+        if (!this.props.leftImageData)
             return 0;
-        return this.props.imageData.frames.length;
+        return this.props.leftImageData.frames.length;
     };
-    GifPlayer.prototype.scheduleNextFrame = function (imageData, delay, forcePlay) {
+    GifPlayer.prototype.scheduleNextFrame = function (leftImageData, rightImageData, delay, forcePlay) {
         var _this = this;
         if (!forcePlay && !this.state.playing)
             return;
         var start = Date.now();
         setTimeout(function () {
-            if (!_this.props.imageData || (_this.props.imageData !== imageData))
+            if (!_this.props.leftImageData || _this.props.leftImageData !== leftImageData || !_this.props.rightImageData || (_this.props.rightImageData !== rightImageData))
                 return;
             var nextFrame = (_this.state.currentFrame + 1);
             if (nextFrame >= _this.getNumFrames() && !_this.state.loop) {
@@ -19076,13 +19133,13 @@ var GifPlayer = (function (_super) {
                 return;
             }
             nextFrame %= _this.getNumFrames();
-            var interval = ((_this.props.imageData.frames[nextFrame].info.delay || 1) * 10) / _this.state.playbackSpeed;
+            var interval = ((_this.props.leftImageData.frames[nextFrame].info.delay || 1) * 10) / _this.state.playbackSpeed;
             var elapsed = (Date.now() - start);
             var next = Math.max(0, interval - (elapsed - delay));
             _this.setState({
                 currentFrame: nextFrame
             });
-            _this.scheduleNextFrame(imageData, next);
+            _this.scheduleNextFrame(leftImageData, rightImageData, next);
         }, delay);
     };
     GifPlayer.prototype.onSliderChange = function (e) {
@@ -19098,9 +19155,9 @@ var GifPlayer = (function (_super) {
     };
     GifPlayer.prototype.render = function () {
         return (React.createElement("div", { className: "gif-figure" },
-            React.createElement(gif_renderer_1.default, __assign({}, this.props, { currentFrame: this.state.currentFrame })),
+            React.createElement(gif_renderer_1.default, __assign({}, this.props, { gif: this.state.interleavedGif, currentFrame: this.state.currentFrame })),
             React.createElement("div", { className: "content-wrapper" },
-                React.createElement(GifProperties, __assign({}, this.props))),
+                React.createElement(GifProperties, { gif: this.state.interleavedGif })),
             React.createElement("div", null,
                 React.createElement(loading_spinner_1.default, { active: this.props.loadingGif })),
             React.createElement("div", { className: "playback-controls content-wrapper" },
@@ -19135,55 +19192,6 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(18);
 var ReactDOM = __webpack_require__(66);
-var scanline_renderer = __webpack_require__(67);
-/**
- * Renders a scanlined gif.
- */
-var GifRenderer = (function (_super) {
-    __extends(GifRenderer, _super);
-    function GifRenderer() {
-        return _super !== null && _super.apply(this, arguments) || this;
-    }
-    GifRenderer.prototype.componentDidMount = function () {
-        this._canvas = ReactDOM.findDOMNode(this);
-        this._ctx = this._canvas.getContext('2d');
-    };
-    GifRenderer.prototype.componentWillReceiveProps = function (newProps) {
-        this.drawGifForOptions(newProps.imageData, newProps);
-    };
-    GifRenderer.prototype.drawGifForOptions = function (imageData, state) {
-        if (imageData) {
-            scanline_renderer.drawForOptions(this._canvas, this._ctx, imageData, state);
-        }
-    };
-    GifRenderer.prototype.render = function () {
-        return (React.createElement("canvas", { className: "gif-canvas", width: "0", height: "0" }));
-    };
-    return GifRenderer;
-}(React.Component));
-exports.default = GifRenderer;
-;
-
-
-/***/ }),
-/* 120 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-var __extends = (this && this.__extends) || (function () {
-    var extendStatics = Object.setPrototypeOf ||
-        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-    return function (d, b) {
-        extendStatics(d, b);
-        function __() { this.constructor = d; }
-        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-    };
-})();
-Object.defineProperty(exports, "__esModule", { value: true });
-var React = __webpack_require__(18);
-var ReactDOM = __webpack_require__(66);
 var search_1 = __webpack_require__(115);
 var viewer_1 = __webpack_require__(116);
 /**
@@ -19195,7 +19203,7 @@ var Main = (function (_super) {
         var _this = _super.call(this, props) || this;
         _this.state = {
             leftGif: 'https://media2.giphy.com/media/jb5WFJTgSSonu/giphy.gif',
-            rightGif: 'https://media2.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif'
+            rightGif: "https://media3.giphy.com/media/l3vR1tookIhM8nZJu/giphy.gif" //"https://media4.giphy.com/media/12KiGLydHEdak8/giphy.gif"
         };
         return _this;
     }
@@ -19213,6 +19221,38 @@ var Main = (function (_super) {
 }(React.Component));
 ;
 ReactDOM.render(React.createElement(Main, null), document.getElementById('content'));
+
+
+/***/ }),
+/* 120 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var InterleaveMode;
+(function (InterleaveMode) {
+    InterleaveMode[InterleaveMode["even"] = 0] = "even";
+})(InterleaveMode = exports.InterleaveMode || (exports.InterleaveMode = {}));
+var evenWeave = function (left, right) {
+    return left.frames.map(function (x, i) { return [x, i / left.frames.length, 0]; })
+        .concat(right.frames.map(function (x, i) { return [x, i / right.frames.length, 1]; }))
+        .sort(function (x, y) {
+        if (x[1] === y[1]) {
+            return x[2] - y[2];
+        }
+        return x[1] - y[1];
+    })
+        .map(function (x) { return x[0]; });
+};
+exports.interleave = function (leftGif, rightGif) {
+    var frames = evenWeave(leftGif, rightGif);
+    return {
+        width: leftGif.width,
+        height: leftGif.height,
+        frames: frames
+    };
+};
 
 
 /***/ }),

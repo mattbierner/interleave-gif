@@ -199,7 +199,7 @@ export default class Search extends React.Component<SearchProps, SearchState> {
         return (
             <div className='gif-search'>
                 <GifSearchBar
-                    searchText=''
+                    searchText={this.state.searchText}
                     onChange={this.onSearchTextChange.bind(this)}
                     onSearch={this.search.bind(this)} />
                 <GifSearchResults {...this.state}

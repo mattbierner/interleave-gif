@@ -10369,11 +10369,11 @@ function drawForOptions(canvas, context, gif, mode, state) {
         context.drawImage(frame.canvas, 0, 0, canvas.width, canvas.height);
     }
     else if (mode === exports.scaleAndCrop) {
-        var scaleX = gif.width / frame.info.width;
-        var scaleY = gif.height / frame.info.height;
+        var scaleX = gif.width / frame.width;
+        var scaleY = gif.height / frame.height;
         var scale = Math.max(scaleX, scaleY);
-        var newWidth = scale * frame.info.width;
-        var newHeight = scale * frame.info.height;
+        var newWidth = scale * frame.width;
+        var newHeight = scale * frame.height;
         context.drawImage(frame.canvas, (gif.width - newWidth) / 2, (gif.height - newHeight) / 2, newWidth, newHeight);
     }
 }
@@ -18955,7 +18955,7 @@ var Viewer = (function (_super) {
             React.createElement("div", { className: "view-controls" },
                 React.createElement(ModeSelector, { title: 'Interleave Mode', options: interleaver_1.interleaveModes, value: this.state.mode, onChange: this.onInterleaveModeChange.bind(this) }),
                 React.createElement(ModeSelector, { title: 'Scale Mode', options: gif_renderer_1.scaleModes, value: this.state.scaleMode, onChange: this.onScaleModeChange.bind(this) }),
-                React.createElement("div", { className: "export-controls" },
+                React.createElement("div", { className: 'export-controls' },
                     React.createElement("button", { onClick: this.onExport.bind(this) }, "Export to gif"),
                     React.createElement("div", null,
                         React.createElement(loading_spinner_1.default, { active: this.state.exporting }))))));
@@ -19203,8 +19203,8 @@ var Main = (function (_super) {
     function Main(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
-            leftGif: 'https://media1.giphy.com/media/3oEduGi1UWg9Q6nF84/giphy.gif',
-            rightGif: "https://media2.giphy.com/media/TXvbvcWwnkUjS/giphy.gif" //"https://media4.giphy.com/media/12KiGLydHEdak8/giphy.gif"
+            leftGif: 'https://media2.giphy.com/media/TXvbvcWwnkUjS/giphy.gif',
+            rightGif: 'https://media1.giphy.com/media/3oEduGi1UWg9Q6nF84/giphy.gif' //"https://media4.giphy.com/media/12KiGLydHEdak8/giphy.gif"
         };
         return _this;
     }
@@ -19341,12 +19341,14 @@ var loadBinaryData = function (url) {
     return p;
 };
 var Frame = (function () {
-    function Frame(info, canvas) {
+    function Frame(info, canvas, width, height) {
         this.info = info;
         this.canvas = canvas;
+        this.width = width;
+        this.height = height;
     }
     Frame.prototype.withDelay = function (delay) {
-        return new Frame(Object.assign({}, this.info, { delay: delay }), this.canvas);
+        return new Frame(Object.assign({}, this.info, { delay: delay }), this.canvas, this.width, this.height);
     };
     return Frame;
 }());
@@ -19391,7 +19393,7 @@ var extractGifFrameData = function (reader) {
         var ctx = canvas.getContext('2d');
         reader.decodeAndBlitFrameRGBA(i, imageData.data);
         ctx.putImageData(imageData, 0, 0);
-        frames.push(new Frame(info, canvas));
+        frames.push(new Frame(info, canvas, width, height));
     }
     return frames;
 };

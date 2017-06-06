@@ -35,11 +35,11 @@ export function drawForOptions(
     if (mode === scaleToFit) {
         context.drawImage(frame.canvas, 0, 0, canvas.width, canvas.height)
     } else if (mode === scaleAndCrop) {
-        const scaleX = gif.width / frame.info.width
-        const scaleY = gif.height / frame.info.height
+        const scaleX = gif.width / frame.width
+        const scaleY = gif.height / frame.height
         const scale = Math.max(scaleX, scaleY)
-        const newWidth = scale * frame.info.width
-        const newHeight = scale * frame.info.height
+        const newWidth = scale * frame.width
+        const newHeight = scale * frame.height
 
         context.drawImage(frame.canvas, (gif.width - newWidth) / 2, (gif.height - newHeight) / 2, newWidth, newHeight)
     }
@@ -49,8 +49,6 @@ interface GifRendererProps {
     gif: InterleavedGif
     currentFrame: number
     scaleMode: ScaleMode
-
-    [key: string]: any
 }
 
 /**

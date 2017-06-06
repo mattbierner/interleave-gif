@@ -157,14 +157,14 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
                         value={this.state.scaleMode}
                         onChange={this.onScaleModeChange.bind(this)} />
 
-
-                    <div className="export-controls">
+                    <div className='export-controls'>
                         <button onClick={this.onExport.bind(this)}>Export to gif</button>
                         <div>
                             <LoadingSpinner active={this.state.exporting} />
                         </div>
                     </div>
                 </div>
-            </div>);
+            </div>
+        )
     }
 };

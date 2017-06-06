@@ -52,7 +52,8 @@ class ModeSelector extends React.Component<{ value: string, onChange: (e: React.
 }
 
 interface ViewerProps {
-    file: string
+    leftGif: string
+    rightGif: string
 }
 
 interface ViewerState {
@@ -78,12 +79,12 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
     }
 
     componentDidMount() {
-        this.loadGif(this.props.file);
+        this.loadGif(this.props.leftGif);
     }
 
     componentWillReceiveProps(newProps: ViewerProps) {
-        if (newProps.file && newProps.file.length && newProps.file !== this.props.file) {
-            this.loadGif(newProps.file);
+        if (newProps.leftGif && newProps.leftGif.length && newProps.leftGif !== this.props.leftGif) {
+            this.loadGif(newProps.leftGif);
         }
     }
 
@@ -91,7 +92,7 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
         this.setState({ loadingGif: true });
         loadGif(file)
             .then(data => {
-                if (file !== this.props.file)
+                if (file !== this.props.leftGif)
                     return;
 
                 this.setState({
@@ -101,7 +102,7 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
                 });
             })
             .catch(e => {
-                if (file !== this.props.file)
+                if (file !== this.props.leftGif)
                     return;
 
                 console.error(e);

@@ -10335,18 +10335,9 @@ module.exports = __webpack_require__(167);
 
 /***/ }),
 /* 67 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-/**
- * Draw a scanlined gif for a set of options
- */
-exports.drawForOptions = function (canvas, ctx, imageData, state) {
-    return;
-};
-
+throw new Error("Module build failed: Error: ENOENT: no such file or directory, open '/Users/mattbierner/Projects/interleave-gif/src/scanline_renderer.ts'");
 
 /***/ }),
 /* 68 */
@@ -18848,11 +18839,11 @@ var Viewer = (function (_super) {
         return _this;
     }
     Viewer.prototype.componentDidMount = function () {
-        this.loadGif(this.props.file);
+        this.loadGif(this.props.leftGif);
     };
     Viewer.prototype.componentWillReceiveProps = function (newProps) {
-        if (newProps.file && newProps.file.length && newProps.file !== this.props.file) {
-            this.loadGif(newProps.file);
+        if (newProps.leftGif && newProps.leftGif.length && newProps.leftGif !== this.props.leftGif) {
+            this.loadGif(newProps.leftGif);
         }
     };
     Viewer.prototype.loadGif = function (file) {
@@ -18860,7 +18851,7 @@ var Viewer = (function (_super) {
         this.setState({ loadingGif: true });
         loadGif_1.default(file)
             .then(function (data) {
-            if (file !== _this.props.file)
+            if (file !== _this.props.leftGif)
                 return;
             _this.setState({
                 imageData: data,
@@ -18869,7 +18860,7 @@ var Viewer = (function (_super) {
             });
         })
             .catch(function (e) {
-            if (file !== _this.props.file)
+            if (file !== _this.props.leftGif)
                 return;
             console.error(e);
             _this.setState({
@@ -19203,17 +19194,19 @@ var Main = (function (_super) {
     function Main(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
-            selectedGif: "https://media2.giphy.com/media/jb5WFJTgSSonu/giphy.gif"
+            leftGif: 'https://media2.giphy.com/media/jb5WFJTgSSonu/giphy.gif',
+            rightGif: 'https://media2.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif'
         };
         return _this;
     }
     Main.prototype.onGifSelected = function (src) {
-        this.setState({ selectedGif: src });
-        //window.location = '#viewer';
+        this.setState({
+            leftGif: src
+        });
     };
     Main.prototype.render = function () {
-        return (React.createElement("div", { className: "main container" },
-            React.createElement(viewer_1.default, { file: this.state.selectedGif }),
+        return (React.createElement("div", { className: 'main container' },
+            React.createElement(viewer_1.default, { leftGif: this.state.leftGif, rightGif: this.state.rightGif }),
             React.createElement(search_1.default, { onGifSelected: this.onGifSelected.bind(this) })));
     };
     return Main;

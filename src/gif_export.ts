@@ -1,11 +1,12 @@
-import { drawForOptions } from "./gif_renderer";
+import { drawForOptions, ScaleMode } from "./gif_renderer";
+import { InterleavedGif } from "./interleaver";
 
 const GifEncoder = require('gif-encoder');
 
 /**
  * 
  */
-export default (imageData: any, props: any) => {
+export default (imageData: InterleavedGif, scaleMode: ScaleMode, props: any) => {
     const gif = new GifEncoder(imageData.width, imageData.height);
 
     const canvas = document.createElement("canvas");
@@ -25,7 +26,7 @@ export default (imageData: any, props: any) => {
 
     setTimeout(() => {
         for (let i = 0; i < imageData.frames.length; ++i) {
-            drawForOptions(canvas, ctx, imageData, Object.assign({ currentFrame: i }, props));
+            drawForOptions(canvas, ctx, imageData, scaleMode, Object.assign({ currentFrame: i }, props));
             gif.setDelay(imageData.frames[i].info.delay * 10);
             gif.addFrame(ctx.getImageData(0, 0, imageData.width, imageData.height).data);
         }

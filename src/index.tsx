@@ -17,7 +17,7 @@ class Main extends React.Component<null, MainState> {
         super(props);
         this.state = {
             leftGif: 'https://media1.giphy.com/media/3oEduGi1UWg9Q6nF84/giphy.gif',
-            rightGif: "https://media3.giphy.com/media/l3vR1tookIhM8nZJu/giphy.gif"//"https://media4.giphy.com/media/12KiGLydHEdak8/giphy.gif"
+            rightGif: "https://media2.giphy.com/media/TXvbvcWwnkUjS/giphy.gif"//"https://media4.giphy.com/media/12KiGLydHEdak8/giphy.gif"
         };
     }
 

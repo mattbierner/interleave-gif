@@ -1,9 +1,9 @@
-import { Gif } from "./loadGif";
+import { Gif, Frame } from "./loadGif";
 
 export interface InterleavedGif {
     width: number
     height: number
-    frames: any[]
+    frames: Frame[]
 }
 
 
@@ -29,8 +29,8 @@ export const interleaveModes = [evenWeaveMode, alternateMode]
 
 
 const evenWeave = (left: Gif, right: Gif): any[] => {
-    return left.frames.map((x, i) => [x, i / left.frames.length, 0])
-        .concat(right.frames.map((x, i) => [x, i / right.frames.length, 1]))
+    return left.frames.map((x, i) => [x, i / left.frames.length, 0] as [Frame, number, number])
+        .concat(right.frames.map((x, i) => [x, i / right.frames.length, 1] as [Frame, number, number]))
         .sort((x, y) => x[1] === y[1] ? x[2] - y[2] : x[1] - y[1])
         .map(x => x[0])
 }
@@ -38,8 +38,9 @@ const evenWeave = (left: Gif, right: Gif): any[] => {
 const alternate = (left: Gif, right: Gif): any[] => {
     const frames = []
     for (let i = 0; i < left.frames.length; ++i) {
-        frames.push(left.frames[i])
-        frames.push(right.frames[i % right.frames.length])
+        const leftFrame = left.frames[i]
+        frames.push(leftFrame)
+        frames.push(right.frames[i % right.frames.length].withDelay(leftFrame.info.delay))
     }
     return frames
 }

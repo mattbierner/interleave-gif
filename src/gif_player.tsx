@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom';
 
 import LabeledSlider from './labeled_slider';
 import LoadingSpinner from './loading_spinner';
-import GifRenderer from './gif_renderer';
+import GifRenderer, { ScaleMode } from './gif_renderer';
 import { Gif } from "./loadGif";
 import { InterleavedGif, interleave } from "./interleaver";
 
@@ -66,6 +66,7 @@ class GifProperties extends React.Component<{ gif: InterleavedGif | Gif }, null>
 interface GifPlayerProps {
     interleaved: Gif | null
     loadingGif: boolean
+    scaleMode: ScaleMode
 }
 
 interface GifPlayerState {
@@ -157,7 +158,10 @@ export default class GifPlayer extends React.Component<GifPlayerProps, GifPlayer
     render() {
         return (
             <div className="gif-figure">
-                <GifRenderer {...this.props} gif={this.props.interleaved} currentFrame={this.state.currentFrame} />
+                <GifRenderer
+                    gif={this.props.interleaved}
+                    currentFrame={this.state.currentFrame}
+                    scaleMode={this.props.scaleMode} />
                 <div className="content-wrapper">
                     <GifProperties gif={this.props.interleaved} />
                 </div>

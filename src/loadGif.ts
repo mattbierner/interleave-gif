@@ -20,10 +20,30 @@ const loadBinaryData = (url: string): Promise<Uint8Array> => {
     return p;
 };
 
+export interface FrameInfo {
+    delay: number
+    width: number
+    height: number
+}
+
+export class Frame {
+    constructor(
+        public readonly info: FrameInfo,
+        public readonly canvas: HTMLCanvasElement
+    ) { }
+
+    public withDelay(delay: number): Frame {
+        return new Frame(
+            Object.assign({}, this.info, { delay }),
+            this.canvas
+        )
+    }
+}
+
 export interface Gif {
     width: number
     height: number
-    frames: any[]
+    frames: Frame[]
 }
 
 /**
@@ -71,7 +91,7 @@ const extractGifFrameData = (reader: any): any[] => {
 
         reader.decodeAndBlitFrameRGBA(i, imageData.data);
         ctx.putImageData(imageData, 0, 0);
-        frames.push({ info, canvas })
+        frames.push(new Frame(info, canvas))
     }
     return frames;
 };

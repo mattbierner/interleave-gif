@@ -12,20 +12,43 @@ export const scaleToFit: ScaleMode = {
     description: 'Scale the right image to fit within the left image'
 }
 
+export const scaleAndCrop: ScaleMode = {
+    name: 'Scale and Crop',
+    description: 'Scale the right image proportionally and then crop'
+}
+
+
+export const scaleModes = [scaleToFit, scaleAndCrop]
+
 export function drawForOptions(
     canvas: HTMLCanvasElement,
     context: CanvasRenderingContext2D,
     gif: InterleavedGif,
+    mode: ScaleMode,
     state: any
 ) {
     canvas.width = gif.width
     canvas.height = gif.height
-    context.drawImage(gif.frames[state.currentFrame].canvas, 0, 0, canvas.width, canvas.height)
+
+    const frame = gif.frames[state.currentFrame]
+
+    if (mode === scaleToFit) {
+        context.drawImage(frame.canvas, 0, 0, canvas.width, canvas.height)
+    } else if (mode === scaleAndCrop) {
+        const scaleX = gif.width / frame.info.width
+        const scaleY = gif.height / frame.info.height
+        const scale = Math.max(scaleX, scaleY)
+        const newWidth = scale * frame.info.width
+        const newHeight = scale * frame.info.height
+
+        context.drawImage(frame.canvas, (gif.width - newWidth) / 2, (gif.height - newHeight) / 2, newWidth, newHeight)
+    }
 }
 
 interface GifRendererProps {
     gif: InterleavedGif
     currentFrame: number
+    scaleMode: ScaleMode
 
     [key: string]: any
 }
@@ -48,7 +71,7 @@ export default class GifRenderer extends React.Component<GifRendererProps, null>
 
     drawGifForOptions(imageData: any, state: GifRendererProps) {
         if (imageData) {
-            drawForOptions(this._canvas, this._ctx, imageData, state);
+            drawForOptions(this._canvas, this._ctx, imageData, this.props.scaleMode, state);
         }
     }
 

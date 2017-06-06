@@ -10356,10 +10356,26 @@ exports.scaleToFit = {
     name: 'Scale to Fit',
     description: 'Scale the right image to fit within the left image'
 };
-function drawForOptions(canvas, context, gif, state) {
+exports.scaleAndCrop = {
+    name: 'Scale and Crop',
+    description: 'Scale the right image proportionally and then crop'
+};
+exports.scaleModes = [exports.scaleToFit, exports.scaleAndCrop];
+function drawForOptions(canvas, context, gif, mode, state) {
     canvas.width = gif.width;
     canvas.height = gif.height;
-    context.drawImage(gif.frames[state.currentFrame].canvas, 0, 0, canvas.width, canvas.height);
+    var frame = gif.frames[state.currentFrame];
+    if (mode === exports.scaleToFit) {
+        context.drawImage(frame.canvas, 0, 0, canvas.width, canvas.height);
+    }
+    else if (mode === exports.scaleAndCrop) {
+        var scaleX = gif.width / frame.info.width;
+        var scaleY = gif.height / frame.info.height;
+        var scale = Math.max(scaleX, scaleY);
+        var newWidth = scale * frame.info.width;
+        var newHeight = scale * frame.info.height;
+        context.drawImage(frame.canvas, (gif.width - newWidth) / 2, (gif.height - newHeight) / 2, newWidth, newHeight);
+    }
 }
 exports.drawForOptions = drawForOptions;
 /**
@@ -10379,7 +10395,7 @@ var GifRenderer = (function (_super) {
     };
     GifRenderer.prototype.drawGifForOptions = function (imageData, state) {
         if (imageData) {
-            drawForOptions(this._canvas, this._ctx, imageData, state);
+            drawForOptions(this._canvas, this._ctx, imageData, this.props.scaleMode, state);
         }
     };
     GifRenderer.prototype.render = function () {
@@ -18832,6 +18848,7 @@ var loading_spinner_1 = __webpack_require__(45);
 var gif_player_1 = __webpack_require__(118);
 var gif_export_1 = __webpack_require__(117);
 var interleaver_1 = __webpack_require__(120);
+var gif_renderer_1 = __webpack_require__(67);
 /**
  * Control for selecting rendering mode.
  */
@@ -18841,15 +18858,17 @@ var ModeSelector = (function (_super) {
         return _super !== null && _super.apply(this, arguments) || this;
     }
     ModeSelector.prototype.onChange = function (e) {
-        var mode = interleaver_1.interleaveModes.find(function (x) { return x.name === e.target.value; });
+        var mode = this.props.options.find(function (x) { return x.name === e.target.value; });
         this.props.onChange(mode);
     };
     ModeSelector.prototype.render = function () {
-        var modeOptions = interleaver_1.interleaveModes.map(function (x) {
+        var modeOptions = this.props.options.map(function (x) {
             return React.createElement("option", { value: x.name, key: x.name }, x.name);
         });
         return (React.createElement("div", { className: 'mode-selector control-group' },
-            React.createElement("span", { className: 'control-title' }, "Interleave Mode "),
+            React.createElement("span", { className: 'control-title' },
+                this.props.title,
+                " "),
             React.createElement("select", { value: this.props.value.name, onChange: this.onChange.bind(this) }, modeOptions),
             React.createElement("div", { className: 'control-description' }, this.props.value.description)));
     };
@@ -18866,8 +18885,9 @@ var Viewer = (function (_super) {
             leftImageData: null,
             rightImageData: null,
             interleaved: null,
-            loadingGif: false,
             mode: interleaver_1.interleaveModes[0],
+            scaleMode: gif_renderer_1.scaleModes[0],
+            loadingGif: false,
             exporting: false
         };
         return _this;
@@ -18910,16 +18930,19 @@ var Viewer = (function (_super) {
             });
         });
     };
-    Viewer.prototype.onModeChange = function (mode) {
+    Viewer.prototype.onInterleaveModeChange = function (mode) {
         this.setState({
             mode: mode,
             interleaved: interleaver_1.interleave(this.state.leftImageData, this.state.rightImageData, mode)
         });
     };
+    Viewer.prototype.onScaleModeChange = function (mode) {
+        this.setState({ scaleMode: mode, });
+    };
     Viewer.prototype.onExport = function () {
         var _this = this;
         this.setState({ exporting: true });
-        gif_export_1.default(this.state.leftImageData, this.state).then(function (blob) {
+        gif_export_1.default(this.state.interleaved, this.state.scaleMode, this.state).then(function (blob) {
             _this.setState({ exporting: false });
             var url = URL.createObjectURL(blob);
             window.open(url);
@@ -18930,7 +18953,8 @@ var Viewer = (function (_super) {
             React.createElement("div", { className: "player-wrapper" },
                 React.createElement(gif_player_1.default, __assign({}, this.state))),
             React.createElement("div", { className: "view-controls" },
-                React.createElement(ModeSelector, { value: this.state.mode, onChange: this.onModeChange.bind(this) }),
+                React.createElement(ModeSelector, { title: 'Interleave Mode', options: interleaver_1.interleaveModes, value: this.state.mode, onChange: this.onInterleaveModeChange.bind(this) }),
+                React.createElement(ModeSelector, { title: 'Scale Mode', options: gif_renderer_1.scaleModes, value: this.state.scaleMode, onChange: this.onScaleModeChange.bind(this) }),
                 React.createElement("div", { className: "export-controls" },
                     React.createElement("button", { onClick: this.onExport.bind(this) }, "Export to gif"),
                     React.createElement("div", null,
@@ -18954,7 +18978,7 @@ var GifEncoder = __webpack_require__(141);
 /**
  *
  */
-exports.default = function (imageData, props) {
+exports.default = function (imageData, scaleMode, props) {
     var gif = new GifEncoder(imageData.width, imageData.height);
     var canvas = document.createElement("canvas");
     var ctx = canvas.getContext("2d");
@@ -18970,7 +18994,7 @@ exports.default = function (imageData, props) {
     gif.writeHeader();
     setTimeout(function () {
         for (var i = 0; i < imageData.frames.length; ++i) {
-            gif_renderer_1.drawForOptions(canvas, ctx, imageData, Object.assign({ currentFrame: i }, props));
+            gif_renderer_1.drawForOptions(canvas, ctx, imageData, scaleMode, Object.assign({ currentFrame: i }, props));
             gif.setDelay(imageData.frames[i].info.delay * 10);
             gif.addFrame(ctx.getImageData(0, 0, imageData.width, imageData.height).data);
         }
@@ -18996,14 +19020,6 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
-var __assign = (this && this.__assign) || Object.assign || function(t) {
-    for (var s, i = 1, n = arguments.length; i < n; i++) {
-        s = arguments[i];
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-            t[p] = s[p];
-    }
-    return t;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(18);
 var labeled_slider_1 = __webpack_require__(121);
@@ -19140,7 +19156,7 @@ var GifPlayer = (function (_super) {
     };
     GifPlayer.prototype.render = function () {
         return (React.createElement("div", { className: "gif-figure" },
-            React.createElement(gif_renderer_1.default, __assign({}, this.props, { gif: this.props.interleaved, currentFrame: this.state.currentFrame })),
+            React.createElement(gif_renderer_1.default, { gif: this.props.interleaved, currentFrame: this.state.currentFrame, scaleMode: this.props.scaleMode }),
             React.createElement("div", { className: "content-wrapper" },
                 React.createElement(GifProperties, { gif: this.props.interleaved })),
             React.createElement("div", null,
@@ -19188,7 +19204,7 @@ var Main = (function (_super) {
         var _this = _super.call(this, props) || this;
         _this.state = {
             leftGif: 'https://media1.giphy.com/media/3oEduGi1UWg9Q6nF84/giphy.gif',
-            rightGif: "https://media3.giphy.com/media/l3vR1tookIhM8nZJu/giphy.gif" //"https://media4.giphy.com/media/12KiGLydHEdak8/giphy.gif"
+            rightGif: "https://media2.giphy.com/media/TXvbvcWwnkUjS/giphy.gif" //"https://media4.giphy.com/media/12KiGLydHEdak8/giphy.gif"
         };
         return _this;
     }
@@ -19233,8 +19249,9 @@ var evenWeave = function (left, right) {
 var alternate = function (left, right) {
     var frames = [];
     for (var i = 0; i < left.frames.length; ++i) {
-        frames.push(left.frames[i]);
-        frames.push(right.frames[i % right.frames.length]);
+        var leftFrame = left.frames[i];
+        frames.push(leftFrame);
+        frames.push(right.frames[i % right.frames.length].withDelay(leftFrame.info.delay));
     }
     return frames;
 };
@@ -19323,6 +19340,17 @@ var loadBinaryData = function (url) {
     xhr.send(null);
     return p;
 };
+var Frame = (function () {
+    function Frame(info, canvas) {
+        this.info = info;
+        this.canvas = canvas;
+    }
+    Frame.prototype.withDelay = function (delay) {
+        return new Frame(Object.assign({}, this.info, { delay: delay }), this.canvas);
+    };
+    return Frame;
+}());
+exports.Frame = Frame;
 /**
  * Extract metadata and frames from binary gif data.
  */
@@ -19363,7 +19391,7 @@ var extractGifFrameData = function (reader) {
         var ctx = canvas.getContext('2d');
         reader.decodeAndBlitFrameRGBA(i, imageData.data);
         ctx.putImageData(imageData, 0, 0);
-        frames.push({ info: info, canvas: canvas });
+        frames.push(new Frame(info, canvas));
     }
     return frames;
 };

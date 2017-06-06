@@ -7,27 +7,30 @@ import LoadingSpinner from './loading_spinner';
 import GifPlayer from './gif_player';
 import exportGif from './gif_export';
 import { interleaveModes, InterleaveMode, InterleavedGif, interleave } from "./interleaver";
+import { ScaleMode, scaleModes } from "./gif_renderer";
 
-interface ModeSelectorProps {
-    value: InterleaveMode
-    onChange: (mode: InterleaveMode) => void
+interface ModeSelectorProps<T> {
+    title: string
+    options: T[]
+    value: T
+    onChange: (mode: T) => void
 }
 
 /**
  * Control for selecting rendering mode.
  */
-class ModeSelector extends React.Component<ModeSelectorProps, null> {
+class ModeSelector<T> extends React.Component<ModeSelectorProps<{ name: string, description: string }>, null> {
     private onChange(e: React.ChangeEvent<HTMLSelectElement>) {
-        const mode = interleaveModes.find(x => x.name === e.target.value)
+        const mode = this.props.options.find(x => x.name === e.target.value)
         this.props.onChange(mode);
     }
 
     render() {
-        const modeOptions = interleaveModes.map(x =>
+        const modeOptions = this.props.options.map(x =>
             <option value={x.name} key={x.name}>{x.name}</option>);
         return (
             <div className='mode-selector control-group'>
-                <span className='control-title'>Interleave Mode </span>
+                <span className='control-title'>{this.props.title} </span>
                 <select value={this.props.value.name} onChange={this.onChange.bind(this)}>
                     {modeOptions}
                 </select>
@@ -48,6 +51,7 @@ interface ViewerState {
     interleaved: InterleavedGif | null
     loadingGif: boolean
     mode: InterleaveMode
+    scaleMode: ScaleMode
     exporting: boolean
     error?: string
 }
@@ -63,8 +67,10 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
             rightImageData: null,
             interleaved: null,
 
-            loadingGif: false,
             mode: interleaveModes[0],
+            scaleMode: scaleModes[0],
+
+            loadingGif: false,
             exporting: false
         }
     }
@@ -112,16 +118,20 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
             });
     }
 
-    private onModeChange(mode: InterleaveMode): void {
+    private onInterleaveModeChange(mode: InterleaveMode): void {
         this.setState({
             mode,
             interleaved: interleave(this.state.leftImageData, this.state.rightImageData, mode)
         });
     }
 
+    private onScaleModeChange(mode: ScaleMode): void {
+        this.setState({ scaleMode: mode, })
+    }
+
     private onExport() {
         this.setState({ exporting: true });
-        exportGif(this.state.leftImageData, this.state).then(blob => {
+        exportGif(this.state.interleaved, this.state.scaleMode, this.state).then(blob => {
             this.setState({ exporting: false });
             const url = URL.createObjectURL(blob);
             window.open(url);
@@ -135,7 +145,18 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
                     <GifPlayer {...this.state} />
                 </div>
                 <div className="view-controls">
-                    <ModeSelector value={this.state.mode} onChange={this.onModeChange.bind(this)} />
+                    <ModeSelector
+                        title='Interleave Mode'
+                        options={interleaveModes}
+                        value={this.state.mode}
+                        onChange={this.onInterleaveModeChange.bind(this)} />
+
+                    <ModeSelector
+                        title='Scale Mode'
+                        options={scaleModes}
+                        value={this.state.scaleMode}
+                        onChange={this.onScaleModeChange.bind(this)} />
+
 
                     <div className="export-controls">
                         <button onClick={this.onExport.bind(this)}>Export to gif</button>

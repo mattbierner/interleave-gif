@@ -64,13 +64,11 @@ class GifProperties extends React.Component<{ gif: InterleavedGif | Gif }, null>
 };
 
 interface GifPlayerProps {
-    leftImageData: Gif
-    rightImageData: Gif
+    interleaved: Gif | null
     loadingGif: boolean
 }
 
 interface GifPlayerState {
-    interleavedGif: InterleavedGif | null
     currentFrame: number
     playing: boolean
     loop: boolean
@@ -84,7 +82,6 @@ export default class GifPlayer extends React.Component<GifPlayerProps, GifPlayer
     constructor(props: GifPlayerProps) {
         super(props)
         this.state = {
-            interleavedGif: null,
             currentFrame: 0,
             playing: false,
             loop: true,
@@ -93,14 +90,12 @@ export default class GifPlayer extends React.Component<GifPlayerProps, GifPlayer
     }
 
     componentWillReceiveProps(newProps: GifPlayerProps) {
-        if (this.props.leftImageData !== newProps.leftImageData || this.props.rightImageData !== newProps.rightImageData) {
-            const interleaved = interleave(newProps.leftImageData, newProps.rightImageData);
+        if (this.props.interleaved !== newProps.interleaved) {
             this.setState({
-                interleavedGif: interleaved,
                 currentFrame: 0,
                 playing: true // autoplay
             });
-            this.scheduleNextFrame(newProps.leftImageData, newProps.rightImageData, 0, true);
+            this.scheduleNextFrame(newProps.interleaved, 0, true);
         }
     }
 
@@ -108,23 +103,23 @@ export default class GifPlayer extends React.Component<GifPlayerProps, GifPlayer
         this.setState({ playing: !this.state.playing });
 
         if (!this.state.playing) {
-            this.scheduleNextFrame(this.props.leftImageData, this.props.rightImageData, 0, true);
+            this.scheduleNextFrame(this.props.interleaved, 0, true);
         }
     }
 
     getNumFrames() {
-        if (!this.props.leftImageData)
+        if (!this.props.interleaved)
             return 0;
-        return this.props.leftImageData.frames.length;
+        return this.props.interleaved.frames.length;
     }
 
-    scheduleNextFrame(leftImageData: Gif, rightImageData: Gif, delay: number, forcePlay?: boolean) {
+    scheduleNextFrame(leftImageData: InterleavedGif, delay: number, forcePlay?: boolean) {
         if (!forcePlay && !this.state.playing)
             return;
 
         const start = Date.now();
         setTimeout(() => {
-            if (!this.props.leftImageData || this.props.leftImageData !== leftImageData || !this.props.rightImageData || (this.props.rightImageData !== rightImageData))
+            if (!this.props.interleaved || this.props.interleaved !== leftImageData)
                 return;
 
             let nextFrame = (this.state.currentFrame + 1);
@@ -135,13 +130,13 @@ export default class GifPlayer extends React.Component<GifPlayerProps, GifPlayer
 
             nextFrame %= this.getNumFrames();
 
-            const interval = ((this.props.leftImageData.frames[nextFrame].info.delay || 1) * 10) / this.state.playbackSpeed;
+            const interval = ((this.props.interleaved.frames[nextFrame].info.delay || 1) * 10) / this.state.playbackSpeed;
             const elapsed = (Date.now() - start);
             const next = Math.max(0, interval - (elapsed - delay));
             this.setState({
                 currentFrame: nextFrame
             });
-            this.scheduleNextFrame(leftImageData, rightImageData, next);
+            this.scheduleNextFrame(leftImageData, next);
         }, delay);
     }
 
@@ -162,9 +157,9 @@ export default class GifPlayer extends React.Component<GifPlayerProps, GifPlayer
     render() {
         return (
             <div className="gif-figure">
-                <GifRenderer {...this.props} gif={this.state.interleavedGif} currentFrame={this.state.currentFrame} />
+                <GifRenderer {...this.props} gif={this.props.interleaved} currentFrame={this.state.currentFrame} />
                 <div className="content-wrapper">
-                    <GifProperties gif={this.state.interleavedGif} />
+                    <GifProperties gif={this.props.interleaved} />
                 </div>
                 <div>
                     <LoadingSpinner active={this.props.loadingGif} />

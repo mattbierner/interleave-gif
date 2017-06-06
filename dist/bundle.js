@@ -10352,6 +10352,10 @@ var __extends = (this && this.__extends) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 var React = __webpack_require__(18);
 var ReactDOM = __webpack_require__(66);
+exports.scaleToFit = {
+    name: 'Scale to Fit',
+    description: 'Scale the right image to fit within the left image'
+};
 function drawForOptions(canvas, context, gif, state) {
     canvas.width = gif.width;
     canvas.height = gif.height;
@@ -18827,31 +18831,7 @@ var loadGif_1 = __webpack_require__(122);
 var loading_spinner_1 = __webpack_require__(45);
 var gif_player_1 = __webpack_require__(118);
 var gif_export_1 = __webpack_require__(117);
-/**
- * Display modes
- */
-var modes = {
-    'columns': {
-        title: 'Columns',
-        description: 'Equal width columns, one for each frame'
-    },
-    'rows': {
-        title: 'Rows',
-        description: 'Equal height rows, one for each frame'
-    },
-    'grid': {
-        title: 'Grid',
-        description: 'Configurable grid'
-    },
-    'diagonal': {
-        title: 'Diagonal',
-        description: 'Configurable diagonal bars'
-    },
-    'circle': {
-        title: 'Rings',
-        description: 'Configurable rings'
-    }
-};
+var interleaver_1 = __webpack_require__(120);
 /**
  * Control for selecting rendering mode.
  */
@@ -18860,14 +18840,18 @@ var ModeSelector = (function (_super) {
     function ModeSelector() {
         return _super !== null && _super.apply(this, arguments) || this;
     }
+    ModeSelector.prototype.onChange = function (e) {
+        var mode = interleaver_1.interleaveModes.find(function (x) { return x.name === e.target.value; });
+        this.props.onChange(mode);
+    };
     ModeSelector.prototype.render = function () {
-        var modeOptions = Object.keys(modes).map(function (x) {
-            return React.createElement("option", { value: x, key: x }, modes[x].title);
+        var modeOptions = interleaver_1.interleaveModes.map(function (x) {
+            return React.createElement("option", { value: x.name, key: x.name }, x.name);
         });
-        return (React.createElement("div", { className: "mode-selector control-group" },
-            React.createElement("span", { className: "control-title" }, "Mode "),
-            React.createElement("select", { value: this.props.value, onChange: this.props.onChange }, modeOptions),
-            React.createElement("div", { className: "control-description" }, modes[this.props.value].description)));
+        return (React.createElement("div", { className: 'mode-selector control-group' },
+            React.createElement("span", { className: 'control-title' }, "Interleave Mode "),
+            React.createElement("select", { value: this.props.value.name, onChange: this.onChange.bind(this) }, modeOptions),
+            React.createElement("div", { className: 'control-description' }, this.props.value.description)));
     };
     return ModeSelector;
 }(React.Component));
@@ -18881,8 +18865,9 @@ var Viewer = (function (_super) {
         _this.state = {
             leftImageData: null,
             rightImageData: null,
+            interleaved: null,
             loadingGif: false,
-            mode: Object.keys(modes)[0],
+            mode: interleaver_1.interleaveModes[0],
             exporting: false
         };
         return _this;
@@ -18907,6 +18892,7 @@ var Viewer = (function (_super) {
             _this.setState({
                 leftImageData: leftData,
                 rightImageData: rightData,
+                interleaved: interleaver_1.interleave(leftData, rightData, _this.state.mode),
                 loadingGif: false,
                 error: null
             });
@@ -18918,14 +18904,17 @@ var Viewer = (function (_super) {
             _this.setState({
                 leftImageData: null,
                 rightImageData: null,
+                interleaved: null,
                 loadingGif: false,
                 error: 'Could not load gif'
             });
         });
     };
-    Viewer.prototype.onModeChange = function (e) {
-        var value = e.target.value;
-        this.setState({ mode: value });
+    Viewer.prototype.onModeChange = function (mode) {
+        this.setState({
+            mode: mode,
+            interleaved: interleaver_1.interleave(this.state.leftImageData, this.state.rightImageData, mode)
+        });
     };
     Viewer.prototype.onExport = function () {
         var _this = this;
@@ -19020,7 +19009,6 @@ var React = __webpack_require__(18);
 var labeled_slider_1 = __webpack_require__(121);
 var loading_spinner_1 = __webpack_require__(45);
 var gif_renderer_1 = __webpack_require__(67);
-var interleaver_1 = __webpack_require__(120);
 var playbackSpeeds = {
     '1x speed': 1,
     '2x speed': 2,
@@ -19089,7 +19077,6 @@ var GifPlayer = (function (_super) {
     function GifPlayer(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
-            interleavedGif: null,
             currentFrame: 0,
             playing: false,
             loop: true,
@@ -19098,34 +19085,32 @@ var GifPlayer = (function (_super) {
         return _this;
     }
     GifPlayer.prototype.componentWillReceiveProps = function (newProps) {
-        if (this.props.leftImageData !== newProps.leftImageData || this.props.rightImageData !== newProps.rightImageData) {
-            var interleaved = interleaver_1.interleave(newProps.leftImageData, newProps.rightImageData);
+        if (this.props.interleaved !== newProps.interleaved) {
             this.setState({
-                interleavedGif: interleaved,
                 currentFrame: 0,
                 playing: true // autoplay
             });
-            this.scheduleNextFrame(newProps.leftImageData, newProps.rightImageData, 0, true);
+            this.scheduleNextFrame(newProps.interleaved, 0, true);
         }
     };
     GifPlayer.prototype.onToggle = function () {
         this.setState({ playing: !this.state.playing });
         if (!this.state.playing) {
-            this.scheduleNextFrame(this.props.leftImageData, this.props.rightImageData, 0, true);
+            this.scheduleNextFrame(this.props.interleaved, 0, true);
         }
     };
     GifPlayer.prototype.getNumFrames = function () {
-        if (!this.props.leftImageData)
+        if (!this.props.interleaved)
             return 0;
-        return this.props.leftImageData.frames.length;
+        return this.props.interleaved.frames.length;
     };
-    GifPlayer.prototype.scheduleNextFrame = function (leftImageData, rightImageData, delay, forcePlay) {
+    GifPlayer.prototype.scheduleNextFrame = function (leftImageData, delay, forcePlay) {
         var _this = this;
         if (!forcePlay && !this.state.playing)
             return;
         var start = Date.now();
         setTimeout(function () {
-            if (!_this.props.leftImageData || _this.props.leftImageData !== leftImageData || !_this.props.rightImageData || (_this.props.rightImageData !== rightImageData))
+            if (!_this.props.interleaved || _this.props.interleaved !== leftImageData)
                 return;
             var nextFrame = (_this.state.currentFrame + 1);
             if (nextFrame >= _this.getNumFrames() && !_this.state.loop) {
@@ -19133,13 +19118,13 @@ var GifPlayer = (function (_super) {
                 return;
             }
             nextFrame %= _this.getNumFrames();
-            var interval = ((_this.props.leftImageData.frames[nextFrame].info.delay || 1) * 10) / _this.state.playbackSpeed;
+            var interval = ((_this.props.interleaved.frames[nextFrame].info.delay || 1) * 10) / _this.state.playbackSpeed;
             var elapsed = (Date.now() - start);
             var next = Math.max(0, interval - (elapsed - delay));
             _this.setState({
                 currentFrame: nextFrame
             });
-            _this.scheduleNextFrame(leftImageData, rightImageData, next);
+            _this.scheduleNextFrame(leftImageData, next);
         }, delay);
     };
     GifPlayer.prototype.onSliderChange = function (e) {
@@ -19155,9 +19140,9 @@ var GifPlayer = (function (_super) {
     };
     GifPlayer.prototype.render = function () {
         return (React.createElement("div", { className: "gif-figure" },
-            React.createElement(gif_renderer_1.default, __assign({}, this.props, { gif: this.state.interleavedGif, currentFrame: this.state.currentFrame })),
+            React.createElement(gif_renderer_1.default, __assign({}, this.props, { gif: this.props.interleaved, currentFrame: this.state.currentFrame })),
             React.createElement("div", { className: "content-wrapper" },
-                React.createElement(GifProperties, { gif: this.state.interleavedGif })),
+                React.createElement(GifProperties, { gif: this.props.interleaved })),
             React.createElement("div", null,
                 React.createElement(loading_spinner_1.default, { active: this.props.loadingGif })),
             React.createElement("div", { className: "playback-controls content-wrapper" },
@@ -19202,7 +19187,7 @@ var Main = (function (_super) {
     function Main(props) {
         var _this = _super.call(this, props) || this;
         _this.state = {
-            leftGif: 'https://media2.giphy.com/media/jb5WFJTgSSonu/giphy.gif',
+            leftGif: 'https://media1.giphy.com/media/3oEduGi1UWg9Q6nF84/giphy.gif',
             rightGif: "https://media3.giphy.com/media/l3vR1tookIhM8nZJu/giphy.gif" //"https://media4.giphy.com/media/12KiGLydHEdak8/giphy.gif"
         };
         return _this;
@@ -19230,23 +19215,39 @@ ReactDOM.render(React.createElement(Main, null), document.getElementById('conten
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var InterleaveMode;
-(function (InterleaveMode) {
-    InterleaveMode[InterleaveMode["even"] = 0] = "even";
-})(InterleaveMode = exports.InterleaveMode || (exports.InterleaveMode = {}));
+exports.evenWeaveMode = {
+    name: 'Even Weave',
+    description: 'Weave gifs together, attempting to evenly distribute frames of each gif over combined length'
+};
+exports.alternateMode = {
+    name: 'Alternate',
+    description: 'Alternate frames. Drop frames from right if longer. Repeat frames from right if shorter'
+};
+exports.interleaveModes = [exports.evenWeaveMode, exports.alternateMode];
 var evenWeave = function (left, right) {
     return left.frames.map(function (x, i) { return [x, i / left.frames.length, 0]; })
         .concat(right.frames.map(function (x, i) { return [x, i / right.frames.length, 1]; }))
-        .sort(function (x, y) {
-        if (x[1] === y[1]) {
-            return x[2] - y[2];
-        }
-        return x[1] - y[1];
-    })
+        .sort(function (x, y) { return x[1] === y[1] ? x[2] - y[2] : x[1] - y[1]; })
         .map(function (x) { return x[0]; });
 };
-exports.interleave = function (leftGif, rightGif) {
-    var frames = evenWeave(leftGif, rightGif);
+var alternate = function (left, right) {
+    var frames = [];
+    for (var i = 0; i < left.frames.length; ++i) {
+        frames.push(left.frames[i]);
+        frames.push(right.frames[i % right.frames.length]);
+    }
+    return frames;
+};
+exports.interleave = function (leftGif, rightGif, mode) {
+    var frames = [];
+    switch (mode) {
+        case exports.evenWeaveMode:
+            frames = evenWeave(leftGif, rightGif);
+            break;
+        case exports.alternateMode:
+            frames = alternate(leftGif, rightGif);
+            break;
+    }
     return {
         width: leftGif.width,
         height: leftGif.height,

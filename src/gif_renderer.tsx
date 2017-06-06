@@ -2,7 +2,22 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import { InterleavedGif } from "./interleaver";
 
-export function drawForOptions(canvas: HTMLCanvasElement, context: CanvasRenderingContext2D, gif: InterleavedGif, state: any) {
+export interface ScaleMode {
+    readonly name: string
+    readonly description: string
+}
+
+export const scaleToFit: ScaleMode = {
+    name: 'Scale to Fit',
+    description: 'Scale the right image to fit within the left image'
+}
+
+export function drawForOptions(
+    canvas: HTMLCanvasElement,
+    context: CanvasRenderingContext2D,
+    gif: InterleavedGif,
+    state: any
+) {
     canvas.width = gif.width
     canvas.height = gif.height
     context.drawImage(gif.frames[state.currentFrame].canvas, 0, 0, canvas.width, canvas.height)

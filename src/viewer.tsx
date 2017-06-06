@@ -6,48 +6,34 @@ import LabeledSlider from './labeled_slider';
 import LoadingSpinner from './loading_spinner';
 import GifPlayer from './gif_player';
 import exportGif from './gif_export';
+import { interleaveModes, InterleaveMode, InterleavedGif, interleave } from "./interleaver";
 
-/**
- * Display modes
- */
-const modes: any = {
-    'columns': {
-        title: 'Columns',
-        description: 'Equal width columns, one for each frame'
-    },
-    'rows': {
-        title: 'Rows',
-        description: 'Equal height rows, one for each frame'
-    },
-    'grid': {
-        title: 'Grid',
-        description: 'Configurable grid'
-    },
-    'diagonal': {
-        title: 'Diagonal',
-        description: 'Configurable diagonal bars'
-    },
-    'circle': {
-        title: 'Rings',
-        description: 'Configurable rings'
-    }
-};
+interface ModeSelectorProps {
+    value: InterleaveMode
+    onChange: (mode: InterleaveMode) => void
+}
 
 /**
  * Control for selecting rendering mode.
  */
-class ModeSelector extends React.Component<{ value: string, onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void }, null> {
+class ModeSelector extends React.Component<ModeSelectorProps, null> {
+    private onChange(e: React.ChangeEvent<HTMLSelectElement>) {
+        const mode = interleaveModes.find(x => x.name === e.target.value)
+        this.props.onChange(mode);
+    }
+
     render() {
-        const modeOptions = Object.keys(modes).map(x =>
-            <option value={x} key={x}>{modes[x].title}</option>);
+        const modeOptions = interleaveModes.map(x =>
+            <option value={x.name} key={x.name}>{x.name}</option>);
         return (
-            <div className="mode-selector control-group">
-                <span className="control-title">Mode </span>
-                <select value={this.props.value} onChange={this.props.onChange}>
+            <div className='mode-selector control-group'>
+                <span className='control-title'>Interleave Mode </span>
+                <select value={this.props.value.name} onChange={this.onChange.bind(this)}>
                     {modeOptions}
                 </select>
-                <div className="control-description">{modes[this.props.value].description}</div>
-            </div>);
+                <div className='control-description'>{this.props.value.description}</div>
+            </div>
+        );
     }
 }
 
@@ -59,8 +45,9 @@ interface ViewerProps {
 interface ViewerState {
     leftImageData: Gif | null
     rightImageData: Gif | null
+    interleaved: InterleavedGif | null
     loadingGif: boolean
-    mode: string
+    mode: InterleaveMode
     exporting: boolean
     error?: string
 }
@@ -74,9 +61,10 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
         this.state = {
             leftImageData: null,
             rightImageData: null,
+            interleaved: null,
 
             loadingGif: false,
-            mode: Object.keys(modes)[0],
+            mode: interleaveModes[0],
             exporting: false
         }
     }
@@ -102,6 +90,8 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
                 this.setState({
                     leftImageData: leftData,
                     rightImageData: rightData,
+                    interleaved: interleave(leftData, rightData, this.state.mode),
+
                     loadingGif: false,
                     error: null
                 })
@@ -114,18 +104,22 @@ export default class Viewer extends React.Component<ViewerProps, ViewerState> {
                 this.setState({
                     leftImageData: null,
                     rightImageData: null,
+                    interleaved: null,
+
                     loadingGif: false,
                     error: 'Could not load gif'
                 })
             });
     }
 
-    onModeChange(e: any) {
-        const value = e.target.value;
-        this.setState({ mode: value });
+    private onModeChange(mode: InterleaveMode): void {
+        this.setState({
+            mode,
+            interleaved: interleave(this.state.leftImageData, this.state.rightImageData, mode)
+        });
     }
 
-    onExport() {
+    private onExport() {
         this.setState({ exporting: true });
         exportGif(this.state.leftImageData, this.state).then(blob => {
             this.setState({ exporting: false });

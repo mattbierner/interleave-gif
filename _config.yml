@@ -1,0 +1,15 @@
+title: "scanline.gif"
+
+description: "Slit-scan style gif flattening"
+
+# Build settings
+markdown: kramdown
+
+exclude: [
+    "documentation",
+    "node_modules",
+    "process_data",
+    "server",
+    "src",
+    "webpack.config.js"
+]

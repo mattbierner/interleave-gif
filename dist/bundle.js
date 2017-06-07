@@ -18682,8 +18682,8 @@ var GifPicker = (function (_super) {
     };
     GifPicker.prototype.render = function () {
         return (React.createElement("div", null,
-            React.createElement("button", { onClick: this.onClick.bind(this) },
-                React.createElement("span", null, this.props.label),
+            React.createElement("button", { className: 'gif-picker', onClick: this.onClick.bind(this) },
+                React.createElement("span", { className: 'label' }, this.props.label),
                 React.createElement("img", { src: this.props.gif })),
             React.createElement(search_1.default, { onGifSelected: this.onGifSelected.bind(this), visible: this.state.showing })));
     };
@@ -19095,7 +19095,7 @@ var Main = (function (_super) {
         var _this = this;
         return (React.createElement("div", { className: 'main container' },
             React.createElement(viewer_1.default, { leftGif: this.state.leftGif, rightGif: this.state.rightGif }),
-            React.createElement("div", null,
+            React.createElement("div", { className: 'gif-pickers' },
                 React.createElement(gif_picker_1.default, { label: 'left', gif: this.state.leftGif, onGifSelected: function (gif) { return _this.onGifSelected(gif, true); } }),
                 React.createElement(gif_picker_1.default, { label: 'right', gif: this.state.rightGif, onGifSelected: function (gif) { return _this.onGifSelected(gif, false); } }))));
     };
@@ -19158,7 +19158,7 @@ exports.interleaveModes = [exports.evenWeaveMode, exports.alternateMode, exports
 exports.interleave = function (left, right, mode) {
     return {
         width: left.width,
-        height: right.height,
+        height: left.height,
         frames: mode.interleave(left, right)
     };
 };

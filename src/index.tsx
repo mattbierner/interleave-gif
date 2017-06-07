@@ -37,7 +37,7 @@ class Main extends React.Component<null, MainState> {
                 <Viewer
                     leftGif={this.state.leftGif}
                     rightGif={this.state.rightGif} />
-                <div>
+                <div className='gif-pickers'>
                     <GifPicker label='left' gif={this.state.leftGif} onGifSelected={(gif) => this.onGifSelected(gif, true)} />
                     <GifPicker label='right' gif={this.state.rightGif} onGifSelected={(gif) => this.onGifSelected(gif, false)} />
                 </div>

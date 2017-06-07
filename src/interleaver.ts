@@ -69,7 +69,7 @@ export const interleaveModes = [evenWeaveMode, alternateMode, time]
 export const interleave = (left: Gif, right: Gif, mode: InterleaveMode): InterleavedGif => {
     return {
         width: left.width,
-        height: right.height,
+        height: left.height,
         frames: mode.interleave(left, right)
     }
 }

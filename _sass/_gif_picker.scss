@@ -1,0 +1,13 @@
+.gif-pickers {
+    display: flex;
+    flex-direction: row;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.gif-picker {
+    img {
+        max-width: 100px;
+        max-height: 100px;
+    }
+}

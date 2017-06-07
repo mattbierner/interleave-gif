@@ -32,8 +32,8 @@ export default class GifPicker extends React.Component<GifPickerProps, GifPicker
     render() {
         return (
             <div>
-                <button onClick={this.onClick.bind(this)}>
-                    <span>{this.props.label}</span>
+                <button className='gif-picker' onClick={this.onClick.bind(this)}>
+                    <span className='label'>{this.props.label}</span>
                     <img src={this.props.gif} />
                 </button>
                 <Search onGifSelected={this.onGifSelected.bind(this)} visible={this.state.showing} />

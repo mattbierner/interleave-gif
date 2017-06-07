@@ -3,6 +3,7 @@ import * as ReactDOM from 'react-dom';
 
 import Search from './search';
 import Viewer from './viewer';
+import GifPicker from "./gif_picker";
 
 interface MainState {
     leftGif: string
@@ -21,10 +22,13 @@ class Main extends React.Component<null, MainState> {
         };
     }
 
-    onGifSelected(src: string) {
-        this.setState({
-            leftGif: src
-        });
+    onGifSelected(src: string, left: boolean) {
+        if (left) {
+            this.setState({ leftGif: src })
+        } else {
+            this.setState({ rightGif: src })
+
+        }
     }
 
     render() {
@@ -33,7 +37,10 @@ class Main extends React.Component<null, MainState> {
                 <Viewer
                     leftGif={this.state.leftGif}
                     rightGif={this.state.rightGif} />
-                <Search onGifSelected={this.onGifSelected.bind(this)} />
+                <div>
+                    <GifPicker label='left' gif={this.state.leftGif} onGifSelected={(gif) => this.onGifSelected(gif, true)} />
+                    <GifPicker label='right' gif={this.state.rightGif} onGifSelected={(gif) => this.onGifSelected(gif, false)} />
+                </div>
             </div>
         );
     }

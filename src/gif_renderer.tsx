@@ -14,11 +14,16 @@ export const scaleToFit: ScaleMode = {
 
 export const scaleAndCrop: ScaleMode = {
     name: 'Scale and Crop',
-    description: 'Scale the right image proportionally and then crop'
+    description: 'Scale the right image proportionally to the left image and then crop'
+}
+
+export const actualSize: ScaleMode = {
+    name: 'Actual Size',
+    description: 'Draw each image centered in the canvas at the actual size'
 }
 
 
-export const scaleModes = [scaleToFit, scaleAndCrop]
+export const scaleModes = [scaleToFit, scaleAndCrop, actualSize]
 
 export function drawForOptions(
     canvas: HTMLCanvasElement,
@@ -42,6 +47,8 @@ export function drawForOptions(
         const newHeight = scale * frame.height
 
         context.drawImage(frame.canvas, (gif.width - newWidth) / 2, (gif.height - newHeight) / 2, newWidth, newHeight)
+    } else if (mode === actualSize) {
+        context.drawImage(frame.canvas, (gif.width - frame.width) / 2, (gif.height - frame.height) / 2, frame.width, frame.height)
     }
 }
 

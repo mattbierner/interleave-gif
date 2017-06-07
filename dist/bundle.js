@@ -10358,9 +10358,13 @@ exports.scaleToFit = {
 };
 exports.scaleAndCrop = {
     name: 'Scale and Crop',
-    description: 'Scale the right image proportionally and then crop'
+    description: 'Scale the right image proportionally to the left image and then crop'
 };
-exports.scaleModes = [exports.scaleToFit, exports.scaleAndCrop];
+exports.actualSize = {
+    name: 'Actual Size',
+    description: 'Draw each image centered in the canvas at the actual size'
+};
+exports.scaleModes = [exports.scaleToFit, exports.scaleAndCrop, exports.actualSize];
 function drawForOptions(canvas, context, gif, mode, state) {
     canvas.width = gif.width;
     canvas.height = gif.height;
@@ -10375,6 +10379,9 @@ function drawForOptions(canvas, context, gif, mode, state) {
         var newWidth = scale * frame.width;
         var newHeight = scale * frame.height;
         context.drawImage(frame.canvas, (gif.width - newWidth) / 2, (gif.height - newHeight) / 2, newWidth, newHeight);
+    }
+    else if (mode === exports.actualSize) {
+        context.drawImage(frame.canvas, (gif.width - frame.width) / 2, (gif.height - frame.height) / 2, frame.width, frame.height);
     }
 }
 exports.drawForOptions = drawForOptions;
@@ -19233,42 +19240,52 @@ ReactDOM.render(React.createElement(Main, null), document.getElementById('conten
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.evenWeaveMode = {
     name: 'Even Weave',
-    description: 'Weave gifs together, attempting to evenly distribute frames of each gif over combined length'
+    description: 'Weave gifs together, attempting to evenly distribute frames of each gif over combined length',
+    interleave: function (left, right) {
+        return left.frames.map(function (x, i) { return [x, i / left.frames.length, 0]; })
+            .concat(right.frames.map(function (x, i) { return [x, i / right.frames.length, 1]; }))
+            .sort(function (x, y) { return x[1] === y[1] ? x[2] - y[2] : x[1] - y[1]; })
+            .map(function (x) { return x[0]; });
+    }
 };
 exports.alternateMode = {
     name: 'Alternate',
-    description: 'Alternate frames. Drop frames from right if longer. Repeat frames from right if shorter'
-};
-exports.interleaveModes = [exports.evenWeaveMode, exports.alternateMode];
-var evenWeave = function (left, right) {
-    return left.frames.map(function (x, i) { return [x, i / left.frames.length, 0]; })
-        .concat(right.frames.map(function (x, i) { return [x, i / right.frames.length, 1]; }))
-        .sort(function (x, y) { return x[1] === y[1] ? x[2] - y[2] : x[1] - y[1]; })
-        .map(function (x) { return x[0]; });
-};
-var alternate = function (left, right) {
-    var frames = [];
-    for (var i = 0; i < left.frames.length; ++i) {
-        var leftFrame = left.frames[i];
-        frames.push(leftFrame);
-        frames.push(right.frames[i % right.frames.length].withDelay(leftFrame.info.delay));
+    description: 'Alternate frames. Drop frames from right if longer. Repeat frames from right if shorter',
+    interleave: function (left, right) {
+        var frames = [];
+        for (var i = 0; i < left.frames.length; ++i) {
+            var leftFrame = left.frames[i];
+            frames.push(leftFrame);
+            frames.push(right.frames[i % right.frames.length].withDelay(leftFrame.info.delay));
+        }
+        return frames;
     }
-    return frames;
 };
-exports.interleave = function (leftGif, rightGif, mode) {
-    var frames = [];
-    switch (mode) {
-        case exports.evenWeaveMode:
-            frames = evenWeave(leftGif, rightGif);
-            break;
-        case exports.alternateMode:
-            frames = alternate(leftGif, rightGif);
-            break;
+exports.time = {
+    name: 'Times',
+    description: '',
+    interleave: function (left, right) {
+        var getTimes = function (frames, index) {
+            var start = 0;
+            return frames.map(function (frame) {
+                var delay = start;
+                start += frame.info.delay;
+                return { frame: frame, delay: delay, index: index };
+            });
+        };
+        var leftTimes = getTimes(left.frames, 0);
+        var rigthTimes = getTimes(right.frames, 1);
+        return leftTimes.concat(rigthTimes)
+            .sort(function (x, y) { return x.delay === y.delay ? x.index - y.index : x.delay - y.delay; })
+            .map(function (x, i, arr) { return i === arr.length - 1 ? x.frame : x.frame.withDelay(arr[i + 1].delay - x.delay); });
     }
+};
+exports.interleaveModes = [exports.evenWeaveMode, exports.alternateMode, exports.time];
+exports.interleave = function (left, right, mode) {
     return {
-        width: leftGif.width,
-        height: leftGif.height,
-        frames: frames
+        width: left.width,
+        height: right.height,
+        frames: mode.interleave(left, right)
     };
 };
 

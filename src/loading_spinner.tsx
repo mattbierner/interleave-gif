@@ -1,5 +1,4 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom';
+import * as React from 'react'
 
 export default class LoadingSpinner extends React.Component<{ active: boolean }, null> {
     render() {

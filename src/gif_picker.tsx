@@ -1,9 +1,11 @@
 import * as React from 'react'
 import Search from "./search";
+import GifProperties from "./gif_properties";
+import { Gif } from "./loadGif";
 
 interface GifPickerProps {
     label: string
-    gif: string
+    source: string
     onGifSelected: (gif: string) => void
 }
 
@@ -29,14 +31,21 @@ export default class GifPicker extends React.Component<GifPickerProps, GifPicker
         this.setState({ showing: true })
     }
 
+    private onDismiss() {
+        this.setState({ showing: false })
+    }
+
     render() {
         return (
             <div>
                 <button className='gif-picker' onClick={this.onClick.bind(this)}>
                     <span className='label'>{this.props.label}</span>
-                    <img src={this.props.gif} />
+                    <img src={this.props.source} />
                 </button>
-                <Search onGifSelected={this.onGifSelected.bind(this)} visible={this.state.showing} />
+                <Search
+                    onGifSelected={this.onGifSelected.bind(this)}
+                    visible={this.state.showing}
+                    onDismiss={this.onDismiss.bind(this)} />
             </div>
         )
     }

@@ -6,6 +6,7 @@ import LoadingSpinner from './loading_spinner';
 import GifRenderer, { ScaleMode } from './gif_renderer';
 import { Gif } from "./loadGif";
 import { InterleavedGif, interleave } from "./interleaver";
+import GifProperties from "./gif_properties";
 
 const playbackSpeeds: any = {
     '1x speed': 1,
@@ -34,34 +35,6 @@ class SpeedSelector extends React.Component<any, null> {
         );
     }
 }
-
-/**
- * Property of a gif.
- */
-class GifProperty extends React.Component<{ value: string | number, label: string }, null> {
-    render() {
-        return (
-            <div className="property">
-                <span className="key">{this.props.label}</span>: <span className="value">{this.props.value}</span>
-            </div>
-        );
-    }
-};
-
-/**
- * Set of metadata displayed about a gif.
- */
-class GifProperties extends React.Component<{ gif: InterleavedGif | Gif }, null> {
-    render() {
-        return (
-            <div className="gif-properties">
-                <GifProperty label="Frames" value={this.props.gif ? this.props.gif.frames.length : ''} />
-                <GifProperty label="Width" value={this.props.gif ? this.props.gif.width : ''} />
-                <GifProperty label="Height" value={this.props.gif ? this.props.gif.height : ''} />
-            </div>
-        );
-    }
-};
 
 interface GifPlayerProps {
     interleaved: Gif | null

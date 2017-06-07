@@ -12,11 +12,13 @@
     background: rgba(255, 255, 255, 0.7);
 }
 
-.gif-search  {
-    flex: 1;
+.gif-search {
+    min-height: 200px;
     max-width: 400px;
-    background: red;
+    background: $background-color;
     overflow-y: scroll;
+    z-index: 10;
+    box-shadow: 0 0 20px black;
 }
 
 .search-results {

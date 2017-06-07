@@ -151,6 +151,8 @@ class GifSearchResults extends React.Component<GifSearchResultsProps, null> {
 interface SearchProps {
     visible: boolean
     onGifSelected: (gif: string) => void
+
+    onDismiss: () => void
 }
 
 interface SearchState {
@@ -231,6 +233,7 @@ export default class Search extends React.Component<SearchProps, SearchState> {
     render() {
         return (
             <div className='gif-search-wrapper' style={{ 'display': this.props.visible ? 'flex' : 'none' }}>
+                <div style={{ position: 'absolute', width: '100%', height: '100%', zIndex: -1 }} onClick={this.props.onDismiss} />
                 <div className='gif-search'>
                     <GifSearchBar
                         searchText={this.state.searchText}

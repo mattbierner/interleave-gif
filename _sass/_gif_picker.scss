@@ -3,20 +3,26 @@
     flex-wrap: wrap;
     flex-direction: row;
     justify-content: center;
-    max-width: 400px;
-    margin: 0 auto;
+    padding-bottom: 1.4em;
 }
 
 .gif-picker {
     display: block;
     height: 100%;;
-    margin: 1em;
+    margin: 0.4em 1em;
+    border: 1px solid transparent;
+
     .label {
         display: block;
+        padding-bottom: 0.4em;
     }
 
     img {
         max-width: 100px;
         max-height: 100px;
+    }
+
+    &:hover {
+        border-color: black;
     }
 }

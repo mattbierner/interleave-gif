@@ -9,38 +9,7 @@ import exportGif from './gif_export';
 import { interleaveModes, InterleaveMode, InterleavedGif, interleave } from "./interleaver";
 import { ScaleMode, scaleModes } from "./gif_renderer";
 import GifPicker from "./gif_picker";
-
-interface ModeSelectorProps<T> {
-    title: string
-    options: T[]
-    value: T
-    onChange: (mode: T) => void
-}
-
-/**
- * Control for selecting rendering mode.
- */
-class ModeSelector<T> extends React.Component<ModeSelectorProps<{ name: string, description: string }>, null> {
-    private onChange(e: React.ChangeEvent<HTMLSelectElement>) {
-        const mode = this.props.options.find(x => x.name === e.target.value)
-        this.props.onChange(mode);
-    }
-
-    render() {
-        const modeOptions = this.props.options.map(x =>
-            <option value={x.name} key={x.name}>{x.name}</option>);
-        return (
-            <div className='mode-selector control-group'>
-                <span className='control-title'>{this.props.title} </span>
-                <select value={this.props.value.name} onChange={this.onChange.bind(this)}>
-                    {modeOptions}
-                </select>
-                <div className='control-description'>{this.props.value.description}</div>
-            </div>
-        );
-    }
-}
-
+import ModeSelector from "./mode_selector";
 
 interface ViewerState {
     leftGif: string
@@ -59,7 +28,7 @@ interface ViewerState {
 /**
  * Displays an interative scanlined gif with controls. 
  */
-export default class Viewer extends React.Component<null, ViewerState> {
+class Viewer extends React.Component<null, ViewerState> {
     constructor(props: any) {
         super(props);
         this.state = {
@@ -138,8 +107,10 @@ export default class Viewer extends React.Component<null, ViewerState> {
     private onGifSelected(src: string, left: boolean) {
         if (left) {
             this.setState({ leftGif: src })
+            this.loadGif(src, this.state.rightGif)
         } else {
             this.setState({ rightGif: src })
+            this.loadGif(this.state.leftGif, src)
         }
     }
 
@@ -151,8 +122,15 @@ export default class Viewer extends React.Component<null, ViewerState> {
                 </div>
                 <div className="view-controls">
                     <div className='gif-pickers'>
-                        <GifPicker label='left' gif={this.state.leftGif} onGifSelected={(gif) => this.onGifSelected(gif, true)} />
-                        <GifPicker label='right' gif={this.state.rightGif} onGifSelected={(gif) => this.onGifSelected(gif, false)} />
+                        <GifPicker
+                            label='left'
+                            source={this.state.leftGif}
+                            onGifSelected={(gif) => this.onGifSelected(gif, true)} />
+
+                        <GifPicker
+                            label='right'
+                            source={this.state.rightGif}
+                            onGifSelected={(gif) => this.onGifSelected(gif, false)} />
                     </div>
 
                     <ModeSelector

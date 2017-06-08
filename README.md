@@ -1,12 +1,11 @@
 <div align="center">
-    <div><img src="https://raw.githubusercontent.com/mattbierner/interleave-gif/gh-pages/documentation/images/cat.gif" /></div>
+    <div><img src="documentation/images/logo.png" /></div>
 </div>
 
 *interleave.gif* is an experiment interleaving the frames of two gifs together.
 
 * [Site][site]
 * [Documentation][documentation]
-
 
 
 ## Building and Running

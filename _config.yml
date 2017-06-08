@@ -1,6 +1,6 @@
-title: "scanline.gif"
+title: "interleave.gif"
 
-description: "Slit-scan style gif flattening"
+description: "Interleaving the frames of two gifs"
 
 # Build settings
 markdown: kramdown

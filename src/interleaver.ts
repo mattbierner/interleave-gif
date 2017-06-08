@@ -42,7 +42,7 @@ const evenWeaveMode: InterleaveMode = {
 
 const evenWeaveWithinMode: InterleaveMode = {
     name: 'Even Weave Within',
-    description: 'Weave gifs together, attempting to evenly distribute secondary gif within primary gif',
+    description: 'Weave gifs together, attempting to evenly distribute the additional gif frames within primary gif',
     interleave(left: Gif, right: Gif): Frame[] {
         return evenWeave(left, right, (frames: Frame[], index: number) =>
             frames.map((x, i) => [x, (i + 1) / (frames.length + 1), index] as [Frame, number, number]))
@@ -51,7 +51,7 @@ const evenWeaveWithinMode: InterleaveMode = {
 
 const alternateMode: InterleaveMode = {
     name: 'Alternate',
-    description: 'Alternate frames. Drop frames from right if longer. Repeat frames from right if shorter',
+    description: 'Alternate frames. Drop frames from additional gif if longer. Repeat frames from additional gif if shorter',
     interleave(left: Gif, right: Gif): Frame[] {
         const frames = []
         for (let i = 0; i < left.frames.length; ++i) {

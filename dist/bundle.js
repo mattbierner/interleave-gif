@@ -18902,7 +18902,7 @@ var evenWeaveMode = {
 };
 var evenWeaveWithinMode = {
     name: 'Even Weave Within',
-    description: 'Weave gifs together, attempting to evenly distribute secondary gif within primary gif',
+    description: 'Weave gifs together, attempting to evenly distribute the additional gif frames within primary gif',
     interleave: function (left, right) {
         return evenWeave(left, right, function (frames, index) {
             return frames.map(function (x, i) { return [x, (i + 1) / (frames.length + 1), index]; });
@@ -18911,7 +18911,7 @@ var evenWeaveWithinMode = {
 };
 var alternateMode = {
     name: 'Alternate',
-    description: 'Alternate frames. Drop frames from right if longer. Repeat frames from right if shorter',
+    description: 'Alternate frames. Drop frames from additional gif if longer. Repeat frames from additional gif if shorter',
     interleave: function (left, right) {
         var frames = [];
         for (var i = 0; i < left.frames.length; ++i) {

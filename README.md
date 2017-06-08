@@ -1,5 +1,7 @@
 <div align="center">
     <div><img src="documentation/logo.png" /></div>
+    <br>
+    <br>
 </div>
 
 *interleave.gif* is an experiment interleaving the frames of two gifs together.

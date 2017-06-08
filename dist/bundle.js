@@ -7703,15 +7703,15 @@ var React = __webpack_require__(17);
 var ReactDOM = __webpack_require__(67);
 exports.scaleToFit = {
     name: 'Scale to Fit',
-    description: 'Scale the right image to fit within the left image'
+    description: 'Scale additional gif to fit within the primary gif image'
 };
 exports.scaleAndCrop = {
     name: 'Scale and Crop',
-    description: 'Scale the right image proportionally to the left image and then crop'
+    description: 'Scale additional gif proportionally to cover the primary gif and then crop'
 };
 exports.actualSize = {
     name: 'Actual Size',
-    description: 'Draw each image centered in the canvas at the actual size'
+    description: 'Draw each gif centered in the canvas at the actual size'
 };
 exports.scaleModes = [exports.scaleToFit, exports.scaleAndCrop, exports.actualSize];
 function drawForOptions(canvas, context, gif, mode, state) {
@@ -7735,7 +7735,7 @@ function drawForOptions(canvas, context, gif, mode, state) {
 }
 exports.drawForOptions = drawForOptions;
 /**
- * Renders a scanlined gif.
+ * Renders a interleaved gif.
  */
 var GifRenderer = (function (_super) {
     __extends(GifRenderer, _super);

@@ -9,17 +9,17 @@ export interface ScaleMode {
 
 export const scaleToFit: ScaleMode = {
     name: 'Scale to Fit',
-    description: 'Scale the right image to fit within the left image'
+    description: 'Scale additional gif to fit within the primary gif image'
 }
 
 export const scaleAndCrop: ScaleMode = {
     name: 'Scale and Crop',
-    description: 'Scale the right image proportionally to the left image and then crop'
+    description: 'Scale additional gif proportionally to cover the primary gif and then crop'
 }
 
 export const actualSize: ScaleMode = {
     name: 'Actual Size',
-    description: 'Draw each image centered in the canvas at the actual size'
+    description: 'Draw each gif centered in the canvas at the actual size'
 }
 
 
@@ -59,7 +59,7 @@ interface GifRendererProps {
 }
 
 /**
- * Renders a scanlined gif. 
+ * Renders a interleaved gif. 
  */
 export default class GifRenderer extends React.Component<GifRendererProps, null> {
     _ctx: any;

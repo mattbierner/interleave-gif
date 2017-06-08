@@ -4,10 +4,10 @@
     <br>
 </div>
 
-*interleave.gif* is an experiment interleaving the frames of two gifs together.
+*interleave.gif* is an experiment interleaving the frames of gifs.
 
-* [Site][site]
-* [Documentation][documentation]
+* [Try it out][site]
+* [About and documentation][documentation]
 
 
 ## Building and Running

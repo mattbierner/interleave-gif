@@ -1,95 +1,64 @@
-# About *scanline.gif*
+# About *interleave.gif*
+*interleave.gif* takes two gifs and interleaves the frames of the gifs into a new gif. The results are usually pretty stroby but can sometimes be fun
 
-*[scanline.gif](site)* is an experiment flattening gifs so that multiple frames of animation are rendered in a single image. The effect is kind of like [slit-scan photography](https://en.wikipedia.org/wiki/Slit-scan_photography).
+### Selecting Gifs
+Gifs come from [Giphy](https://giphy.com/). Interleaved gifs are created from a primary gif and an additional gif.
 
-This page overviews the concept, and details how you can customize the rendering.
+The primary gif defines the size and timing of the interleaved gif. The first frame of the primary gif is also always the first frame of the interleaved gif. 
 
-# Concept
-The original idea behind *scanline.gif* was to explore rendering an animated gif as a single (non-animated) image. Basically: wouldn't it be interesting to re-encoding the time aspect of the animation back into a single image?
+Frames from the secondary gif are inserted between frames of the primary gif. 
 
-*scanline.gif* accomplishes this by rendering multiple frames of the original animation at the same time onto a single image. But only a slice of each frame is rendered, so one part of the image may be showing the second frame while another could be showing frame 7. It's easier to show than explain.
+### Interleave Mode
+The interleave mode controls how frames of the two gifs are combined
 
-Take a 13 frame gif where each frame is a solid color, starting with red at frame 1 and fading to blue at frame 13.
+**Even Weave**
+Even weave attempts to evenly distribute the frames of the two gifs. For example, if we have a gif `A` with 6 frames and a gif `B` with 2 frames, even weave will produce the following frame sequence:
 
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-start.gif)
+```
+A0 A1 A2 B0 A3 A4 A5 B1
+```
 
-Now slice the gif into 13 equal width columns. Draw each column of the image individually, but also advance the animation one frame between columns. You end up with a single image that captures every frame of the original animation.
+Even Weave works best if the gifs have a similar number of frames, however this is not required.
 
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example.png)
-
-These single images can be pretty cool but, for even more fun, you can then replay the animation. Here's what that looks like:
-
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-columns.gif)
-
-Besides basic columns, *scanline.gif* provides a few different modes for placing the scanlines. There's also a few other options to play around with. Try mixing settings to produce some interesting effects.
-
-
-## Basic Settings
+![](images/even-weave.gif)
 
 
-### Gif
-Gifs come from Giphy. Just enter a search term and select one of the returned gifs.
+**Even Weave Within**
+Similar behavior to even weave, but distributes secondary gif within the primary gif. Again using gif `A` with 6 frames and gif `B` with 2 frames, this produces:
 
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/search.gif)
+```
+A0 A1 B0 A2 A3 B1 A4 A5
+```
 
-### Frame Increment
-Number of frames to skip ahead for each scan-line. In the column example, this is the number of frames between two columns.
-
-Frame increment of 2
-
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-columns-inc2.gif)
-
-Frame increment of 6.
-
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-columns-inc6.gif)
+![](images/even-weave-within.gif)
 
 
-### Reverse Frames
-Reverses the frame increment so that frames are sampled in backwards order.
+**Alternate**
+Alternate frames from the two gifs. The resulting gif always has twice the number of frames as the input gif. If the secondary gif is shorted, repeat. If it is longer, drop frames. 
 
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-columns-reverse.gif)
+Using our example gif `A` with 6 frames and gif `B` with 2 frames, this produces:
 
+```
+A0 B0 A1 A1 A2 B0 A3 B1 A4 B0 A5 B1
+```
 
-### Mirror Frames
-When iterating through the frames, when the last frame is reached, instead of overflowing to 0, reverse increment order and go back to zero.
-
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-columns-mirror.gif)
-
-
-## Modes
-
-### Columns
-Renders equal width columns, one for each frame of the animation.
-
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-columns.gif)
-
-### Rows
-Renders equal height rows, one for each frame of the animation.
-
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-rows.gif)
-
-### Grid
-Customizable version of *columns*/*rows*. Renders frames in a grid pattern.
-
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-grid-10x10.gif)
-
-* Columns - Number of columns to divide the image into.
-* Rows - Number of rows to divide the image into.
+![](images/alternate.gif)
 
 
-### Diagonal
-Renders frames as rotated bars.
+### Scaling Modes
+The interleaved gif always has the same dimensions as the primary gif. The scaling mode controls how the frames of secondary gif are resized to fit within the primary gif.
 
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-diag.gif)
+**Scale to fit**
+Scales the frames of the secondary gif to fit within the primary gif. Works best if the gifs have similar dimensions.
 
-* Angle - Angle of rotation.
-* Step Size - Size of each bar in pixels.
+![](images/scale-to-fit.gif)
 
+**Scale and crop**
+Scales the frames of the secondary gif proportionally to fit within the primary gif. Parts of the secondary gif may be cropped.
 
-### Rings
-Renders frames as rings emanating from the center of the image.
+![](images/scale-and-crop.gif)
 
-![](https://raw.githubusercontent.com/mattbierner/scanline-gif/gh-pages/documentation/images/rb-example-rings.gif)
+**Actual size**
+Draw the secondary gif at actual size within the primary gif.
 
-* Angle - Angle of rotation.
-* Step Size - Size of each ring in pixels.
+![](images/actual-size.gif)

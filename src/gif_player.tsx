@@ -37,7 +37,7 @@ class SpeedSelector extends React.Component<any, null> {
 }
 
 interface GifPlayerProps {
-    interleaved: Gif | null
+    interleaved: InterleavedGif | null
     loadingGif: boolean
     scaleMode: ScaleMode
 }

@@ -4,6 +4,7 @@ import GifProperties from "./gif_properties";
 import { Gif } from "./loadGif";
 
 interface GifPickerProps {
+    searchTitle: string
     label: string
     source: string
     onGifSelected: (gif: string) => void
@@ -37,12 +38,13 @@ export default class GifPicker extends React.Component<GifPickerProps, GifPicker
 
     render() {
         return (
-            <div>
-                <button className='gif-picker' onClick={this.onClick.bind(this)}>
+            <div className='gif-picker'>
+                <button className='gif-picker-button' onClick={this.onClick.bind(this)}>
                     <span className='label'>{this.props.label}</span>
                     <img src={this.props.source} />
                 </button>
                 <Search
+                    title={this.props.searchTitle}
                     onGifSelected={this.onGifSelected.bind(this)}
                     visible={this.state.showing}
                     onDismiss={this.onDismiss.bind(this)} />

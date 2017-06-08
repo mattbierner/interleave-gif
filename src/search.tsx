@@ -72,6 +72,7 @@ class SearchResult extends React.Component<SearchResultProps, SearchResultState>
 };
 
 interface GifSearchBarProps {
+    visible: boolean
     searchText: string
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     onSearch: (text: string) => void
@@ -81,13 +82,21 @@ interface GifSearchBarProps {
  * Search bar for entering text
  */
 class GifSearchBar extends React.Component<GifSearchBarProps, null> {
-    onKeyPress(e: KeyboardEvent) {
+    private input: HTMLInputElement;
+
+    componentWillReceiveProps(newProps: GifSearchBarProps) {
+        if (newProps.visible && this.input) {
+            this.input.focus()
+        }
+    }
+
+    private onKeyPress(e: KeyboardEvent) {
         if (e.key === 'Enter') {
             this.onSearch();
         }
     }
 
-    onSearch() {
+    private onSearch() {
         this.props.onSearch(this.props.searchText);
     }
 
@@ -95,7 +104,13 @@ class GifSearchBar extends React.Component<GifSearchBarProps, null> {
         return (
             <div className="gif-search-bar content-wrapper">
                 <button onClick={this.onSearch.bind(this)}><span className="material-icons">search</span></button>
-                <input type="text"
+                <input type='text'
+                    ref={input => {
+                        this.input = input;
+                        if (input && this.props.visible) {
+                            input.focus()
+                        }
+                    }}
                     value={this.props.searchText}
                     placeholder="find a gif"
                     onKeyPress={this.onKeyPress.bind(this)}
@@ -108,13 +123,9 @@ class GifSearchBar extends React.Component<GifSearchBarProps, null> {
 
 interface GifSearchResultsProps {
     results: any[]
-    loading: boolean
     query: string
     onGifSelected: (gif: string) => void
-    onMore: () => void
-
-    hasMore: boolean
-    offset: number
+    loading: boolean
 }
 
 /**
@@ -128,27 +139,19 @@ class GifSearchResults extends React.Component<GifSearchResultsProps, null> {
                 results = <div>No gifs found</div>;
             }
         } else if (this.props.results) {
-            results = this.props.results.map(x =>
-                <SearchResult key={x.id} data={x}
+            results = this.props.results.map((x, i) =>
+                <SearchResult key={i} data={x}
                     onGifSelected={this.props.onGifSelected} />);
-        }
-        let more = undefined;
-        if (this.props.hasMore) {
-            more = <button className='more-button' onClick={this.props.onMore}>Load More</button>
         }
 
         return (
-            <div>
-                <div className="search-label">{this.props.query}</div>
-                <LoadingSpinner active={this.props.loading} />
-                <ul className="search-results">{results}</ul>
-                {more}
-            </div>
+            <ul className="search-results">{results}</ul>
         )
     }
 }
 
 interface SearchProps {
+    title: string
     visible: boolean
     onGifSelected: (gif: string) => void
 
@@ -173,12 +176,37 @@ export default class Search extends React.Component<SearchProps, SearchState> {
         super(props);
         this.state = {
             searchText: '',
-            query: '', // search term for current results
+            query: '',
             loading: false,
             results: null,
             hasMore: false,
             offset: 0
         };
+    }
+
+    componentWillMount() {
+        document.addEventListener('keydown', e => {
+            if (!this.props.visible) {
+                return
+            }
+
+            if (e.keyCode === 27) { // escape
+                this.props.onDismiss();
+            }
+        })
+    }
+
+    componentWillReceiveProps(newProps: SearchProps) {
+        if (!newProps.visible && this.props.visible) {
+            this.state = {
+                searchText: '',
+                query: '',
+                loading: false,
+                results: null,
+                hasMore: false,
+                offset: 0
+            };
+        }
     }
 
     private onSearchTextChange(e: any) {
@@ -231,17 +259,34 @@ export default class Search extends React.Component<SearchProps, SearchState> {
     }
 
     render() {
+        let more = undefined;
+        if (this.state.hasMore) {
+            more = <button className='more-button' onClick={this.onMore.bind(this)}>Load More</button>
+        }
         return (
             <div className='gif-search-wrapper' style={{ 'display': this.props.visible ? 'flex' : 'none' }}>
                 <div style={{ position: 'absolute', width: '100%', height: '100%', zIndex: -1 }} onClick={this.props.onDismiss} />
                 <div className='gif-search'>
-                    <GifSearchBar
-                        searchText={this.state.searchText}
-                        onChange={this.onSearchTextChange.bind(this)}
-                        onSearch={this.search.bind(this)} />
-                    <GifSearchResults {...this.state}
-                        onGifSelected={this.onGifSelected.bind(this)}
-                        onMore={this.onMore.bind(this)} />
+                    <div className='gif-search-header'>
+                        <h2>{this.props.title}</h2>
+                        <button className='material-icons' onClick={this.props.onDismiss}>close</button>
+                    </div>
+                    <div>
+                        <GifSearchBar
+                            visible={this.props.visible}
+                            searchText={this.state.searchText}
+                            onChange={this.onSearchTextChange.bind(this)}
+                            onSearch={this.search.bind(this)} />
+                    </div>
+                    <div className="search-label">{this.state.query}</div>
+
+                    <LoadingSpinner active={this.state.loading} />
+
+                    <div className='search-results-container'>
+                        <GifSearchResults {...this.state}
+                            onGifSelected={this.onGifSelected.bind(this)} />
+                        {more}
+                    </div>
                 </div>
             </div>
         )

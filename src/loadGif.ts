@@ -1,5 +1,7 @@
 const omggif = require('omggif');
 
+const minDelay = 3
+
 /**
  * Get a file as binary data.
  */
@@ -43,6 +45,7 @@ export class Frame {
 }
 
 export interface Gif {
+    source: string
     width: number
     height: number
     frames: Frame[]
@@ -51,14 +54,15 @@ export interface Gif {
 /**
  * Extract metadata and frames from binary gif data.
  */
-const decodeGif = (byteArray: Uint8Array) => {
+const decodeGif = (byteArray: Uint8Array, url: string) => {
     const gr = new omggif.GifReader(byteArray);
     return {
+        source: url,
         width: gr.width,
         height: gr.height,
         frames: extractGifFrameData(gr)
-    };
-};
+    }
+}
 
 /**
  * Handle IE not supporting new ImageData()
@@ -84,7 +88,7 @@ const extractGifFrameData = (reader: any): any[] => {
     const imageData = createImageData(width, height);
     for (let i = 0, len = reader.numFrames(); i < len; ++i) {
         const info = reader.frameInfo(i);
-
+        info.delay = Math.max(minDelay, info.delay)
         const canvas = document.createElement("canvas");
         canvas.width = width;
         canvas.height = height;
@@ -102,4 +106,4 @@ const extractGifFrameData = (reader: any): any[] => {
  * Load and decode a gif.
  */
 export default (url: string): Promise<Gif> =>
-    loadBinaryData(url).then(decodeGif);
+    loadBinaryData(url).then(data => decodeGif(data, url));

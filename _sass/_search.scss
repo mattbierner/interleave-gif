@@ -13,17 +13,41 @@
 }
 
 .gif-search {
-    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+
+    width: 100%;
     max-width: 400px;
     background: $background-color;
-    overflow-y: scroll;
     z-index: 10;
     box-shadow: 0 0 20px black;
+
+    .more-button {
+        margin-top: 2em;
+        margin-bottom: 6em;
+    }
+}
+
+.gif-search-header {
+    position: relative;
+    padding-top: 1em;
+    button {
+        position: absolute;
+        top: 0;
+        right: 0;
+        margin: 4px 10px;
+        padding: 6px;
+    }
+}
+
+.search-results-container {
+    overflow-y: scroll;
+    padding-top: 3rem;
 }
 
 .search-results {
     margin: 0;
-
+    
     li {
         list-style: none;
     }
@@ -67,6 +91,7 @@
     max-width: 300px;
     display: flex;
     margin-bottom: 0.2em;
+    height: 40px;
 
     button {
         border: none;

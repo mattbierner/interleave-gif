@@ -32,8 +32,8 @@ class Viewer extends React.Component<null, ViewerState> {
     constructor(props: any) {
         super(props);
         this.state = {
-            leftGif: 'https://media2.giphy.com/media/TXvbvcWwnkUjS/giphy.gif',
-            rightGif: 'https://media1.giphy.com/media/3oEduGi1UWg9Q6nF84/giphy.gif',//"https://media4.giphy.com/media/12KiGLydHEdak8/giphy.gif"
+            leftGif: 'https://media3.giphy.com/media/SEO7ub2q1fORa/giphy.gif',
+            rightGif: 'https://media2.giphy.com/media/RN6sYUh5VIYlG/giphy.gif',
 
             leftImageData: null,
             rightImageData: null,
@@ -52,8 +52,15 @@ class Viewer extends React.Component<null, ViewerState> {
     }
 
     private loadGif(leftGif: string, rightGif: string) {
+        const loadOrUseCached = (source: string, cached: Gif | null) =>
+            cached && leftGif === cached.source ? Promise.resolve(this.state.leftImageData) : loadGif(source)
+
         this.setState({ loadingGif: true })
-        Promise.all([loadGif(leftGif), loadGif(rightGif)])
+
+        Promise.all([
+            loadOrUseCached(leftGif, this.state.leftImageData),
+            loadOrUseCached(rightGif, this.state.rightImageData)
+        ])
             .then(([leftData, rightData]) => {
                 if (leftGif !== this.state.leftGif || rightGif !== this.state.rightGif)
                     return
@@ -87,20 +94,20 @@ class Viewer extends React.Component<null, ViewerState> {
         this.setState({
             mode,
             interleaved: interleave(this.state.leftImageData, this.state.rightImageData, mode)
-        });
+        })
     }
 
     private onScaleModeChange(mode: ScaleMode): void {
-        this.setState({ scaleMode: mode, })
+        this.setState({ scaleMode: mode })
     }
 
     private onExport() {
-        this.setState({ exporting: true });
+        this.setState({ exporting: true })
         exportGif(this.state.interleaved, this.state.scaleMode, this.state).then(blob => {
-            this.setState({ exporting: false });
-            const url = URL.createObjectURL(blob);
-            window.open(url);
-        });
+            this.setState({ exporting: false })
+            const url = URL.createObjectURL(blob)
+            window.open(url)
+        })
     }
 
 
@@ -114,6 +121,22 @@ class Viewer extends React.Component<null, ViewerState> {
         }
     }
 
+    private onSwap() {
+        if (this.state.loadingGif) {
+            return
+        }
+
+        this.setState({
+            leftGif: this.state.rightGif,
+            rightGif: this.state.leftGif,
+
+            leftImageData: this.state.rightImageData,
+            rightImageData: this.state.leftImageData,
+
+            interleaved: interleave(this.state.rightImageData, this.state.leftImageData, this.state.mode)
+        })
+    }
+
     render() {
         return (
             <div className="main container gif-viewer" id="viewer">
@@ -123,11 +146,15 @@ class Viewer extends React.Component<null, ViewerState> {
                 <div className="view-controls">
                     <div className='gif-pickers'>
                         <GifPicker
+                            searchTitle='Left'
                             label='left'
                             source={this.state.leftGif}
                             onGifSelected={(gif) => this.onGifSelected(gif, true)} />
 
+                        <button className='material-icons swap-button' title='Swap' onClick={this.onSwap.bind(this)}>swap_horiz</button>
+
                         <GifPicker
+                            searchTitle='Right'
                             label='right'
                             source={this.state.rightGif}
                             onGifSelected={(gif) => this.onGifSelected(gif, false)} />
@@ -155,9 +182,9 @@ class Viewer extends React.Component<null, ViewerState> {
             </div>
         )
     }
-};
+}
 
 
 ReactDOM.render(
     <Viewer />,
-    document.getElementById('content'));
+    document.getElementById('content'))

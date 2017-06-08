@@ -9,7 +9,7 @@ export interface ScaleMode {
 
 export const scaleToFit: ScaleMode = {
     name: 'Scale to Fit',
-    description: 'Scale additional gif to fit within the primary gif image'
+    description: 'Scale additional gif to fit within the primary gif'
 }
 
 export const scaleAndCrop: ScaleMode = {

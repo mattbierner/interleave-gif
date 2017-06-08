@@ -7703,7 +7703,7 @@ var React = __webpack_require__(17);
 var ReactDOM = __webpack_require__(67);
 exports.scaleToFit = {
     name: 'Scale to Fit',
-    description: 'Scale additional gif to fit within the primary gif image'
+    description: 'Scale additional gif to fit within the primary gif'
 };
 exports.scaleAndCrop = {
     name: 'Scale and Crop',

@@ -13,23 +13,39 @@ export interface InterleaveMode {
     interleave(left: Gif, right: Gif): Frame[]
 }
 
+const evenWeave = (left: Gif, right: Gif,
+    map: (frames: Frame[], index: number) => ([Frame, number, number])[]
+): Frame[] => {
+
+    let lastDelay = 0;
+    return map(left.frames, 0).concat(map(right.frames, 1))
+        .sort((x, y) => x[1] === y[1] ? x[2] - y[2] : x[1] - y[1])
+        .map(x => {
+            if (x[2] === 0) {
+                lastDelay = x[0].info.delay
+            } else {
+                return x[0].withDelay(lastDelay);
+            }
+
+            return x[0]
+        })
+}
+
 const evenWeaveMode: InterleaveMode = {
     name: 'Even Weave',
-    description: 'Weave gifs together, attempting to evenly distribute frames of each gif over combined length',
+    description: 'Weave gifs together, attempting to evenly distribute frames',
     interleave(left: Gif, right: Gif): Frame[] {
-        let lastDelay = 0;
-        return left.frames.map((x, i) => [x, i / left.frames.length, 0] as [Frame, number, number])
-            .concat(right.frames.map((x, i) => [x, i / right.frames.length, 1] as [Frame, number, number]))
-            .sort((x, y) => x[1] === y[1] ? x[2] - y[2] : x[1] - y[1])
-            .map(x => {
-                if (x[2] === 0) {
-                    lastDelay = x[0].info.delay
-                } else {
-                    return x[0].withDelay(lastDelay);
-                }
+        return evenWeave(left, right, (frames: Frame[], index: number) =>
+            frames.map((x, i) => [x, (i + 1) / frames.length, index] as [Frame, number, number]))
+    }
+}
 
-                return x[0]
-            })
+const evenWeaveWithinMode: InterleaveMode = {
+    name: 'Even Weave Within',
+    description: 'Weave gifs together, attempting to evenly distribute secondary gif within primary gif',
+    interleave(left: Gif, right: Gif): Frame[] {
+        return evenWeave(left, right, (frames: Frame[], index: number) =>
+            frames.map((x, i) => [x, (i + 1) / (frames.length + 1), index] as [Frame, number, number]))
     }
 }
 
@@ -47,7 +63,7 @@ const alternateMode: InterleaveMode = {
     }
 }
 
-export const interleaveModes = [evenWeaveMode, alternateMode]
+export const interleaveModes = [evenWeaveMode, evenWeaveWithinMode, alternateMode]
 
 
 export const interleave = (left: Gif, right: Gif, mode: InterleaveMode): InterleavedGif => {

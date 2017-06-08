@@ -18877,22 +18877,35 @@ exports.default = GifPlayer;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+var evenWeave = function (left, right, map) {
+    var lastDelay = 0;
+    return map(left.frames, 0).concat(map(right.frames, 1))
+        .sort(function (x, y) { return x[1] === y[1] ? x[2] - y[2] : x[1] - y[1]; })
+        .map(function (x) {
+        if (x[2] === 0) {
+            lastDelay = x[0].info.delay;
+        }
+        else {
+            return x[0].withDelay(lastDelay);
+        }
+        return x[0];
+    });
+};
 var evenWeaveMode = {
     name: 'Even Weave',
-    description: 'Weave gifs together, attempting to evenly distribute frames of each gif over combined length',
+    description: 'Weave gifs together, attempting to evenly distribute frames',
     interleave: function (left, right) {
-        var lastDelay = 0;
-        return left.frames.map(function (x, i) { return [x, i / left.frames.length, 0]; })
-            .concat(right.frames.map(function (x, i) { return [x, i / right.frames.length, 1]; }))
-            .sort(function (x, y) { return x[1] === y[1] ? x[2] - y[2] : x[1] - y[1]; })
-            .map(function (x) {
-            if (x[2] === 0) {
-                lastDelay = x[0].info.delay;
-            }
-            else {
-                return x[0].withDelay(lastDelay);
-            }
-            return x[0];
+        return evenWeave(left, right, function (frames, index) {
+            return frames.map(function (x, i) { return [x, (i + 1) / frames.length, index]; });
+        });
+    }
+};
+var evenWeaveWithinMode = {
+    name: 'Even Weave Within',
+    description: 'Weave gifs together, attempting to evenly distribute secondary gif within primary gif',
+    interleave: function (left, right) {
+        return evenWeave(left, right, function (frames, index) {
+            return frames.map(function (x, i) { return [x, (i + 1) / (frames.length + 1), index]; });
         });
     }
 };
@@ -18909,7 +18922,7 @@ var alternateMode = {
         return frames;
     }
 };
-exports.interleaveModes = [evenWeaveMode, alternateMode];
+exports.interleaveModes = [evenWeaveMode, evenWeaveWithinMode, alternateMode];
 exports.interleave = function (left, right, mode) {
     return {
         width: left.width,
@@ -19252,9 +19265,9 @@ var Viewer = (function (_super) {
                 React.createElement(gif_player_1.default, __assign({}, this.state))),
             React.createElement("div", { className: "view-controls" },
                 React.createElement("div", { className: 'gif-pickers' },
-                    React.createElement(gif_picker_1.default, { searchTitle: 'Left', label: 'left', source: this.state.leftGif, onGifSelected: function (gif) { return _this.onGifSelected(gif, true); } }),
+                    React.createElement(gif_picker_1.default, { searchTitle: 'Primary Gif', label: 'primary', source: this.state.leftGif, onGifSelected: function (gif) { return _this.onGifSelected(gif, true); } }),
                     React.createElement("button", { className: 'material-icons swap-button', title: 'Swap', onClick: this.onSwap.bind(this) }, "swap_horiz"),
-                    React.createElement(gif_picker_1.default, { searchTitle: 'Right', label: 'right', source: this.state.rightGif, onGifSelected: function (gif) { return _this.onGifSelected(gif, false); } })),
+                    React.createElement(gif_picker_1.default, { searchTitle: 'Additional Gif', label: 'additional', source: this.state.rightGif, onGifSelected: function (gif) { return _this.onGifSelected(gif, false); } })),
                 React.createElement(mode_selector_1.default, { title: 'Interleave Mode', options: interleaver_1.interleaveModes, value: this.state.mode, onChange: this.onInterleaveModeChange.bind(this) }),
                 React.createElement(mode_selector_1.default, { title: 'Scale Mode', options: gif_renderer_1.scaleModes, value: this.state.scaleMode, onChange: this.onScaleModeChange.bind(this) }),
                 React.createElement("div", { className: 'export-controls' },

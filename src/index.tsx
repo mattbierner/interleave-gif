@@ -146,16 +146,16 @@ class Viewer extends React.Component<null, ViewerState> {
                 <div className="view-controls">
                     <div className='gif-pickers'>
                         <GifPicker
-                            searchTitle='Left'
-                            label='left'
+                            searchTitle='Primary Gif'
+                            label='primary'
                             source={this.state.leftGif}
                             onGifSelected={(gif) => this.onGifSelected(gif, true)} />
 
                         <button className='material-icons swap-button' title='Swap' onClick={this.onSwap.bind(this)}>swap_horiz</button>
 
                         <GifPicker
-                            searchTitle='Right'
-                            label='right'
+                            searchTitle='Additional Gif'
+                            label='additional'
                             source={this.state.rightGif}
                             onGifSelected={(gif) => this.onGifSelected(gif, false)} />
                     </div>

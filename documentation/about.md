@@ -54,11 +54,11 @@ Scales the frames of the additional gif to fit within the primary gif. Works bes
 ![](images/scale-to-fit.gif)
 
 #### Scale and crop
-Scales the frames of the additional gif proportionally to fit within the primary gif. Parts of the secondary gif may be cropped.
+Scales the frames of the additional gif proportionally to fit within the primary gif. Parts of the additional gif may be cropped.
 
 ![](images/scale-and-crop.gif)
 
 #### Actual size
-Draw the secondary gif at actual size within the primary gif.
+Draw the additional gif at actual size within the primary gif.
 
 ![](images/actual-size.gif)

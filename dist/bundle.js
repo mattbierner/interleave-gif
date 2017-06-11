@@ -19186,7 +19186,7 @@ var Viewer = (function (_super) {
     Viewer.prototype.loadGif = function (leftGif, rightGif) {
         var _this = this;
         var loadOrUseCached = function (source, cached) {
-            return cached && leftGif === cached.source ? Promise.resolve(_this.state.leftImageData) : loadGif_1.default(source);
+            return cached && source === cached.source ? Promise.resolve(cached) : loadGif_1.default(source);
         };
         this.setState({ loadingGif: true });
         Promise.all([

@@ -53,7 +53,7 @@ class Viewer extends React.Component<null, ViewerState> {
 
     private loadGif(leftGif: string, rightGif: string) {
         const loadOrUseCached = (source: string, cached: Gif | null) =>
-            cached && leftGif === cached.source ? Promise.resolve(this.state.leftImageData) : loadGif(source)
+            cached && source === cached.source ? Promise.resolve(cached) : loadGif(source)
 
         this.setState({ loadingGif: true })
 
